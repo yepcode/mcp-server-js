@@ -11,7 +11,14 @@ import {
   ListResourceTemplatesRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { ExecutionError, YepCodeRun, YepCodeEnv, Log } from "@yepcode/run";
+import {
+  YepCodeEnv,
+  Log,
+  YepCodeApi,
+  YepCodeApiManager,
+  YepCodeRun,
+  Execution,
+} from "@yepcode/run";
 import dotenv from "dotenv";
 import {
   RunCodeSchema,
@@ -19,6 +26,10 @@ import {
   RemoveEnvVarSchema,
   ToolCallRequest,
   ToolHandler,
+  RunProcessSchema,
+  LogSchema,
+  ExecutionResultSchema,
+  GetExecutionSchema,
 } from "./types.js";
 import { z } from "zod";
 import { isObject } from "./utils.js";
@@ -32,7 +43,9 @@ class Logger {
       timestamp,
       level: "INFO",
       message,
-      ...(data ? (isObject(data) ? JSON.stringify(data) : data) : undefined),
+      ...(data
+        ? { data: isObject(data) ? JSON.stringify(data) : data }
+        : undefined),
     };
     console.error(JSON.stringify(logEntry));
   }
@@ -62,8 +75,9 @@ dotenv.config();
 class YepCodeServer {
   private server: Server;
 
-  private yepcodeRun: YepCodeRun;
+  private yepCodeRun: YepCodeRun;
   private yepCodeEnv: YepCodeEnv;
+  private yepCodeApi: YepCodeApi;
 
   constructor() {
     this.server = new Server(
@@ -84,8 +98,9 @@ class YepCodeServer {
     this.setupErrorHandling();
 
     try {
-      this.yepcodeRun = new YepCodeRun();
+      this.yepCodeRun = new YepCodeRun();
       this.yepCodeEnv = new YepCodeEnv();
+      this.yepCodeApi = YepCodeApiManager.getInstance({});
       logger.log("YepCode initialized successfully");
     } catch (error) {
       logger.error("Exception while initializing YepCode", error as Error);
@@ -188,113 +203,219 @@ class YepCodeServer {
     }
   }
 
+  private async executionResult(
+    executionId: string
+  ): Promise<ExecutionResultSchema> {
+    const execution = new Execution({
+      yepCodeApi: this.yepCodeApi,
+      executionId,
+    });
+    await execution.waitForDone();
+    return {
+      executionId,
+      logs: execution.logs,
+      processId: execution.processId,
+      status: execution.status,
+      timeline: execution.timeline,
+      ...(execution.returnValue && {
+        returnValue: execution.returnValue,
+      }),
+      ...(execution.error && { error: execution.error }),
+    };
+  }
+
   private setupToolHandlers(): void {
+    const baseTools = [
+      {
+        name: "run_code",
+        description: "Execute code using YepCode's infrastructure",
+        inputSchema: zodToJsonSchema(RunCodeSchema),
+      },
+      {
+        name: "set_env_var",
+        description: "Set a YepCode environment variable",
+        inputSchema: zodToJsonSchema(SetEnvVarSchema),
+      },
+      {
+        name: "remove_env_var",
+        description: "Remove a YepCode environment variable",
+        inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
+      },
+    ];
+
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.log("Handling ListTools request");
+      logger.log(
+        `Handling ListTools request${
+          process.env.YEPCODE_PROCESSES_AS_MCP_TOOLS
+            ? " with processes as MCP tools"
+            : ""
+        }`
+      );
+      const tools = [...baseTools];
+      if (process.env.YEPCODE_PROCESSES_AS_MCP_TOOLS) {
+        tools.push({
+          name: "get_execution",
+          description:
+            "Get the status, result, logs, timeline, etc. of a YepCode execution",
+          inputSchema: zodToJsonSchema(GetExecutionSchema),
+        });
+        let page = 0;
+        let limit = 100;
+        while (true) {
+          const processes = await this.yepCodeApi.getProcesses({ page, limit });
+          logger.log(`Found ${processes?.data?.length} processes`);
+          if (!processes.data) {
+            break;
+          }
+          tools.push(
+            ...processes.data
+              .filter((process) => !process.slug.startsWith("yepcode-run-"))
+              .map((process) => {
+                const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
+                inputSchema.properties.parameters =
+                  process.parametersSchema || {};
+                return {
+                  name: `run_yepcode_process_${process.slug}`,
+                  description: `${process.name}${
+                    process.description ? ` - ${process.description}` : ""
+                  }`,
+                  inputSchema,
+                };
+              })
+          );
+          if (!processes.hasNextPage) {
+            break;
+          }
+          page++;
+        }
+      }
       return {
-        tools: [
-          {
-            name: "run_code",
-            description: "Execute code using YepCode's infrastructure",
-            inputSchema: zodToJsonSchema(RunCodeSchema),
-          },
-          {
-            name: "set_env_var",
-            description: "Set a YepCode environment variable",
-            inputSchema: zodToJsonSchema(SetEnvVarSchema),
-          },
-          {
-            name: "remove_env_var",
-            description: "Remove a YepCode environment variable",
-            inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
-          },
-        ],
+        tools,
       };
     });
 
-    this.server.setRequestHandler(
-      CallToolRequestSchema,
-      async (request, extra) => {
-        logger.log(`Received CallTool request for: ${request.params.name}`);
+    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+      logger.log(`Received CallTool request for: ${request.params.name}`);
 
-        switch (request.params.name) {
-          case "run_code":
-            return this.handleToolRequest(
-              RunCodeSchema,
-              request,
-              async (data) => {
-                const { code, options } = data;
-                const logs: Log[] = [];
-                let executionError: ExecutionError | undefined;
-                let returnValue: unknown;
+      if (request.params.name.startsWith("run_yepcode_process_")) {
+        const processSlug = request.params.name.replace(
+          "run_yepcode_process_",
+          ""
+        );
 
-                logger.log("Running code with YepCode", {
-                  codeLength: code.length,
-                  options,
-                });
-
-                const execution = await this.yepcodeRun.run(code, {
-                  ...options,
-                  onLog: (log) => {
-                    logs.push(log);
-                  },
-                  onError: (error) => {
-                    executionError = error;
-                    logger.error("YepCode execution error", error as Error);
-                  },
-                  onFinish: (value) => {
-                    returnValue = value;
-                    logger.log("YepCode execution finished", {
-                      hasReturnValue: value !== undefined,
-                    });
-                  },
-                });
-
-                await execution.waitForDone();
-
-                return {
-                  success: !executionError,
-                  logs,
-                  returnValue,
-                  error: executionError,
-                };
+        return this.handleToolRequest(
+          RunProcessSchema,
+          request,
+          async (data) => {
+            const {
+              synchronousExecution = true,
+              parameters,
+              ...options
+            } = data;
+            const { executionId } = await this.yepCodeApi.executeProcessAsync(
+              processSlug,
+              parameters,
+              {
+                ...options,
+                initiatedBy: "@yepcode/mcp-server",
               }
             );
-
-          case "set_env_var":
-            return this.handleToolRequest(
-              SetEnvVarSchema,
-              request,
-              async (data) => {
-                const { key, value, isSensitive } = data;
-                logger.log(`Setting environment variable: ${key}`, {
-                  isSensitive,
-                });
-                await this.yepCodeEnv.setEnvVar(key, value, isSensitive);
-                return {};
-              }
-            );
-
-          case "remove_env_var":
-            return this.handleToolRequest(
-              RemoveEnvVarSchema,
-              request,
-              async (data) => {
-                logger.log(`Removing environment variable: ${data.key}`);
-                await this.yepCodeEnv.delEnvVar(data.key);
-                return {};
-              }
-            );
-
-          default:
-            logger.error(`Unknown tool requested: ${request.params.name}`);
-            throw new McpError(
-              ErrorCode.MethodNotFound,
-              `Unknown tool: ${request.params.name}`
-            );
-        }
+            if (!synchronousExecution) {
+              return {
+                executionId,
+              };
+            }
+            return await this.executionResult(executionId);
+          }
+        );
       }
-    );
+
+      switch (request.params.name) {
+        case "run_code":
+          return this.handleToolRequest(
+            RunCodeSchema,
+            request,
+            async (data) => {
+              const { code, options } = data;
+              const logs: Log[] = [];
+              let executionError: string | undefined;
+              let returnValue: unknown;
+
+              logger.log("Running code with YepCode", {
+                codeLength: code.length,
+                options,
+              });
+
+              const execution = await this.yepCodeRun.run(code, {
+                ...options,
+                initiatedBy: "@yepcode/mcp-server",
+                onLog: (log) => {
+                  logs.push(log);
+                },
+                onError: (error) => {
+                  executionError = error.message;
+                  logger.error("YepCode execution error", error as Error);
+                },
+                onFinish: (value) => {
+                  returnValue = value;
+                  logger.log("YepCode execution finished", {
+                    hasReturnValue: value !== undefined,
+                  });
+                },
+              });
+
+              await execution.waitForDone();
+
+              return {
+                success: !executionError,
+                logs,
+                returnValue,
+                ...(executionError && { error: executionError }),
+              };
+            }
+          );
+
+        case "set_env_var":
+          return this.handleToolRequest(
+            SetEnvVarSchema,
+            request,
+            async (data) => {
+              const { key, value, isSensitive } = data;
+              logger.log(`Setting environment variable: ${key}`, {
+                isSensitive,
+              });
+              await this.yepCodeEnv.setEnvVar(key, value, isSensitive);
+              return {};
+            }
+          );
+
+        case "remove_env_var":
+          return this.handleToolRequest(
+            RemoveEnvVarSchema,
+            request,
+            async (data) => {
+              logger.log(`Removing environment variable: ${data.key}`);
+              await this.yepCodeEnv.delEnvVar(data.key);
+              return {};
+            }
+          );
+
+        case "get_execution":
+          return this.handleToolRequest(
+            GetExecutionSchema,
+            request,
+            async (data) => {
+              return await this.executionResult(data.executionId);
+            }
+          );
+        default:
+          logger.error(`Unknown tool requested: ${request.params.name}`);
+          throw new McpError(
+            ErrorCode.MethodNotFound,
+            `Unknown tool: ${request.params.name}`
+          );
+      }
+    });
   }
 
   async run(): Promise<void> {

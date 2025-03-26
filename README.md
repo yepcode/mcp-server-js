@@ -1,126 +1,185 @@
-# MCP Server for YepCode API
+# YepCode MCP Server 🤖
 
-This is an MCP (Model Context Protocol) server that integrates with the YepCode API, allowing you to execute code through YepCode's infrastructure. Built with TypeScript for type safety and better developer experience.
+An MCP (Model Context Protocol) server that enables AI platforms to interact with YepCode's infrastructure. Turn your YepCode processes into powerful tools that AI assistants can use directly.
 
-## Features
+## Why YepCode MCP Server? ✨
 
-- Implements the Model Context Protocol (MCP) specification
-- Uses stdio transport for communication
-- Type-safe with TypeScript and Zod schema validation
-- Integrates with YepCode's code execution infrastructure
-- Proper error handling with MCP error types
+- **AI-Ready Automation** 🧠: Transform your YepCode processes into tools that any AI assistant can use
+- **Bidirectional Communication** 🔄: Create two-way interactions between AI systems and your automation workflows
+- **Secure Infrastructure** 🔒: Execute code and processes in YepCode's secure, isolated environments
+- **Flexible Integration** 🔌: Works with any AI assistant that supports the Model Context Protocol (Claude, Cursor, etc.)
 
-## Setup
+## What is this for? 🎯
 
-1. Install dependencies:
+This MCP server allows you to:
+
+### 1. Create Custom AI Tools 🛠️
+
+Build specialized tools for your AI assistants by creating YepCode processes for:
+
+- 📊 Database queries and operations
+- 🔗 API integrations
+- 🔄 Data transformations
+- 💡 Custom business logic
+- 🔑 Authentication flows
+- 📁 File processing
+
+### 2. Execute Code ⚡
+
+- 💻 Run code snippets in various programming languages
+- 🧪 Test AI-generated code in isolated environments
+- ⏱️ Execute long-running processes
+- 🔐 Access secure computing resources
+
+### 3. Manage Infrastructure 🏗️
+
+- ⚙️ Set and manage environment variables
+- 🎮 Control access to resources
+- 📊 Monitor executions
+- ⚠️ Handle errors gracefully
+
+## Quick Start 🚀
+
+### 1. Installation 📦
+
 ```bash
-npm install
+npm install @yepcode/mcp-server
 ```
 
-2. Configure environment variables:
-- Copy `.env.example` to `.env`
-- Add your YepCode API key to the `.env` file
+### 2. Configuration ⚙️
 
-## Running the Server
+Create a `.env` file:
 
-Development mode (with hot reload):
 ```bash
-npm run dev
+YEPCODE_API_KEY=your_api_key_here
+YEPCODE_PROCESSES_AS_MCP_TOOLS=true  # Optional: Expose YepCode processes as individual MCP tools
 ```
 
-Build and run in production:
-```bash
-npm run build
-npm start
+### 3. Integration with AI Platforms
+
+This is the tipical JSON confiuration to be added to tools like Cursor or Claude Desktop.
+
+```json
+{
+  "mcpServers": {
+    "yepcode-mcp-server": {
+      "command": "npx",
+      "args": ["-y", "@yepcode/mcp-server"],
+      "env": {
+        "YEPCODE_API_KEY":"your_api_key_here",
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true"
+      }
+    }
+  }
+}
 ```
 
-Type checking:
-```bash
-npm run type-check
-```
+## Available Tools 🧰
 
-## MCP Tools
+### run_code 💻
 
-### run_code
+Executes code in YepCode's secure environment.
 
-Executes code using YepCode's infrastructure.
-
-Input schema:
 ```typescript
+// Input
 {
   code: string;
-  context?: Record<string, unknown>;
+  options?: {
+    language?: string;                    // Programming language (default: 'javascript')
+    parameters?: Record<string, unknown>; // Runtime parameters
+    tag?: string;                        // Version tag
+    comment?: string;                    // Execution context
+    settings?: Record<string, unknown>;  // Runtime settings
+  }
 }
-```
 
-Response:
-```typescript
+// Response
 {
   success: boolean;
-  returnValue?: unknown;  // The final return value of the execution
-  logs?: string[];       // Array of logs collected during execution
-  error?: {
-    message: string;     // Error message if execution failed
-    stack?: string;      // Error stack trace if available
-  };
+  returnValue?: unknown;  // Execution result
+  logs?: string[];       // Console output
+  error?: string;
 }
 ```
 
-### set_env_var
+### Environment Variables 🔐
 
-Sets a YepCode environment variable.
+#### set_env_var
 
-Input schema:
+Sets an environment variable.
+
 ```typescript
+// Input
 {
   key: string;
   value: string;
-  isSensitive?: boolean; // defaults to true
+  isSensitive?: boolean; // Mask value in logs (default: true)
 }
 ```
 
-Response:
+#### remove_env_var
+
+Removes an environment variable.
+
 ```typescript
-{
-  success: boolean;
-  error?: {
-    message: string;
-  };
-}
-```
-
-### remove_env_var
-
-Removes a YepCode environment variable.
-
-Input schema:
-```typescript
+// Input
 {
   key: string;
 }
 ```
 
-Response:
+### Run YepCode Processes as MCP Tools ⚡
+
+#### run_yepcode_process_*
+
+When `YEPCODE_PROCESSES_AS_MCP_TOOLS=true`, each YepCode process becomes available as an individual MCP tool. This provides better discoverability and direct access to your processes from AI assistants.
+
+There will be a tool for each YepCode process: `run_yepcode_process_<process_slug>`.
+
 ```typescript
+// Input
 {
-  success: boolean;
-  error?: {
-    message: string;
+  parameters?: any;
+  options?: {
+    tag?: string;      // Process version
+    comment?: string;  // Execution context
   };
+  synchronousExecution?: boolean;  // Wait for completion (default: true)
+}
+
+// Response (synchronous execution)
+{
+  executionId: string;
+  logs: string[];
+  returnValue?: unknown;
+  error?: string;
+}
+
+// Response (asynchronous execution)
+{
+  executionId: string;
 }
 ```
 
-## Error Handling
+#### get_execution
 
-The server uses MCP error types for proper error handling:
+Retrieves the result of an execution.
 
-- `MethodNotFound`: When an unknown tool is requested
-- `InvalidParams`: When the input parameters don't match the schema
-- `InternalError`: For server-side errors (e.g., missing API key)
+```typescript
+// Input
+{
+  executionId: string;
+}
 
-## Development
+// Response
+{
+  executionId: string;
+  logs: string[];
+  returnValue?: unknown;
+  error?: string;
+}
+```
 
-The project uses TypeScript for type safety. The main source files are in the `src` directory, and the compiled JavaScript files will be in the `dist` directory.
+## License ⚖️
 
-- `src/types.ts`: Contains TypeScript interfaces and Zod schemas
-- `src/index.ts`: Main server implementation with MCP protocol handlers
+All rights reserved by YepCode. Usage is subject to [YepCode Terms of Service](https://yepcode.io/terms-of-use).
