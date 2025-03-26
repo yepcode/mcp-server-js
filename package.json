@@ -1,0 +1,57 @@
+{
+  "name": "@yepcode/mcp-server",
+  "version": "0.0.1",
+  "description": "MCP server for YepCode",
+  "main": "dist/index.js",
+  "type": "module",
+  "homepage": "https://yepcode.io/",
+  "author": "YepCode Developers <developers@yepcode.io>",
+  "license": "See LICENSE file",
+  "keywords": [
+    "yepcode",
+    "run",
+    "mcp",
+    "server",
+    "ai",
+    "agent",
+    "ai-agent",
+    "ai-agent-server"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=16",
+    "npm": ">=8"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "bin": {
+    "yepcode-mcp-server": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "start": "node dist/index.js",
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "build": "tsc && node -e \"require('fs').chmodSync('dist/index.js', '755')\"",
+    "type-check": "tsc --noEmit",
+    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "@yepcode/run": "^1.0.0",
+    "dotenv": "^16.4.7",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.2"
+  },
+  "types": "dist/index.d.ts"
+}
