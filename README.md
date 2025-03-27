@@ -1,5 +1,7 @@
 # YepCode MCP Server 🤖
 
+[![NPM version](https://img.shields.io/npm/v/@yepcode/mcp-server.svg)](https://npmjs.org/package/@yepcode/mcp-server)
+
 An MCP (Model Context Protocol) server that enables AI platforms to interact with [YepCode](https://yepcode.io)'s infrastructure. Turn your YepCode processes into powerful tools that AI assistants can use directly.
 
 ## Why YepCode MCP Server? ✨
@@ -170,7 +172,7 @@ There will be a tool for each YepCode process: `run_yepcode_process_<process_slu
 ```typescript
 // Input
 {
-  parameters?: any;
+  parameters?: any; // This should match the input parameters specified in the process
   options?: {
     tag?: string;      // Process version
     comment?: string;  // Execution context
@@ -213,4 +215,4 @@ Retrieves the result of an execution.
 
 ## License ⚖️
 
-All rights reserved by YepCode. Usage is subject to [YepCode Terms of Service](https://yepcode.io/terms-of-use).
+MIT

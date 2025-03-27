@@ -6,7 +6,11 @@
   "type": "module",
   "homepage": "https://yepcode.io/",
   "author": "YepCode Developers <developers@yepcode.io>",
-  "license": "See LICENSE file",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yepcode/mcp-server-js"
+  },
   "keywords": [
     "yepcode",
     "run",
