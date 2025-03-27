@@ -62,8 +62,8 @@ This is the tipical JSON confiuration to be added to tools like [Cursor](https:/
         "@yepcode/mcp-server"
       ],
       "env": {
-        "YEPCODE_API_TOKEN":"your_api_token_here",
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true"  // Optional: Expose YepCode processes as individual MCP tools
+        "YEPCODE_API_TOKEN":"your_api_token_here", // See https://yepcode.io/docs/settings/api-credentials/ to get your API token
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true" // Optional: Expose YepCode processes as individual MCP tools
       }
     }
   }
@@ -91,9 +91,9 @@ Then, you can configure the server with the docker command:
         "run",
         "-d",
         "-e",
-        "YEPCODE_API_TOKEN=your_api_token_here",
+        "YEPCODE_API_TOKEN=your_api_token_here", // See https://yepcode.io/docs/settings/api-credentials/ to get your API token
         "-e",
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS=true",
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS=true", // Optional: Expose YepCode processes as individual MCP tools
         "yepcode/mcp-server"
       ]
     }
