@@ -35,7 +35,7 @@
     ".": "./dist/index.js"
   },
   "bin": {
-    "yepcode-mcp-server": "./dist/index.js"
+    "yepcode-mcp-server": "dist/index.js"
   },
   "scripts": {
     "lint": "eslint .",
