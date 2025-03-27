@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: node:22-alpine
+      image: node:22-slim
     steps:
       - uses: actions/checkout@v4
       - name: Cache node
