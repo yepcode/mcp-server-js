@@ -33,6 +33,7 @@ jobs:
           path: |-
             dist/**
   create_release:
+    needs: deploy
     name: Create Release
     runs-on: ubuntu-latest
     steps:
