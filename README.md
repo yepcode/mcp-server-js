@@ -1,87 +1,62 @@
-# YepCode MCP Server 🤖
+![YepCode MCP Server Preview](/readme-assets/cover.png)
+
+<div align="center">
 
 [![NPM version](https://img.shields.io/npm/v/@yepcode/mcp-server.svg)](https://npmjs.org/package/@yepcode/mcp-server)
 [![NPM Downloads](https://img.shields.io/npm/dm/@yepcode/mcp-server)](https://www.npmjs.com/package/@yepcode/mcp-server)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yepcode/mcp-server-js/ci.yml)](https://github.com/yepcode/mcp-server-js/actions)
 
-An MCP (Model Context Protocol) server that enables AI platforms to interact with [YepCode](https://yepcode.io)'s infrastructure. Turn your YepCode processes into powerful tools that AI assistants can use directly.
+</div>
 
-## Why YepCode MCP Server? ✨
+## What is YepCode MCP Server?
 
-- **AI-Ready Automation** 🧠: Transform your YepCode processes into tools that any AI assistant can use
-- **Bidirectional Communication** 🔄: Create two-way interactions between AI systems and your automation workflows
-- **Secure Infrastructure** 🔒: Execute code and processes in YepCode's secure, isolated environments
-- **Flexible Integration** 🔌: Works with any AI assistant that supports the Model Context Protocol (Claude, Cursor, etc.)
+An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) server that enables AI platforms to interact with [YepCode](https://yepcode.io)'s infrastructure. Turn your YepCode processes into powerful tools that AI assistants can use directly.
 
-## What is this for? 🎯
+### Why YepCode MCP Server?
 
-This MCP server allows you to:
+- **Seamless AI Integration**: Convert YepCode processes into AI-ready tools with zero configuration
+- **Real-time Process Control**: Enable direct interaction between AI systems and your workflows
+- **Enterprise-Grade Security**: Execute code in YepCode's isolated, production-ready environments
+- **Universal Compatibility**: Integrate with any AI platform supporting the Model Context Protocol
 
-### 1. Create Custom AI Tools 🛠️
+## Integration Guide
 
-Build specialized tools for your AI assistants by creating YepCode processes for:
+YepCode MCP server can be integrated with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop) using either NPX or Docker.
 
-- 📊 Database queries and operations
-- 🔗 API integrations
-- 🔄 Data transformations
-- 💡 Custom business logic
-- 🔑 Authentication flows
-- 📁 File processing
+#### Required Environment Variables
 
-### 2. Execute Code ⚡
+- `YEPCODE_API_TOKEN`: Your YepCode API token. How to obtain:
+  1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
+  2. Get your API token from your workspace under: `Settings` > `API credentials`
+- `YEPCODE_PROCESSES_AS_MCP_TOOLS`: Set to "true" to expose YepCode processes as individual MCP tools (optional)
 
-- 💻 Run code snippets in various programming languages
-- 🧪 Test AI-generated code in isolated environments
-- ⏱️ Execute long-running processes
-- 🔐 Access secure computing resources
+### Using NPX
 
-### 3. Manage Infrastructure 🏗️
-
-- ⚙️ Set and manage environment variables
-- 🎮 Control access to resources
-- 📊 Monitor executions
-- ⚠️ Handle errors gracefully
-
-## Quick Start 🚀
-
-### Integration with AI Platforms 📦
-
-#### Using NPX
-
-We have published the MCP server as a package in npm, so you may use `npx` as command to start the server.
-
-This is the tipical JSON confiuration to be added to tools like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop).
+Add the following configuration to your AI platform settings:
 
 ```typescript
 {
   "mcpServers": {
     "yepcode-mcp-server": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@yepcode/mcp-server"
-      ],
+      "args": ["-y", "@yepcode/mcp-server"],
       "env": {
-        "YEPCODE_API_TOKEN":"your_api_token_here", // See https://yepcode.io/docs/settings/api-credentials/ to get your API token
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true" // Optional: Expose YepCode processes as individual MCP tools
+        "YEPCODE_API_TOKEN": "your_api_token_here",
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true"
       }
     }
   }
 }
 ```
 
-#### Using Docker
+### Using Docker
 
-We also have a Dockerfile to build a container image that you can use to start the server.
-
-For this, you need to download the source code and build the image with the following command:
-
+1. Build the container image:
 ```bash
 docker build -t yepcode/mcp-server .
 ```
 
-Then, you can configure the server with the docker command:
-
+2. Add the following configuration to your AI platform settings:
 ```typescript
 {
   "mcpServers": {
@@ -91,9 +66,9 @@ Then, you can configure the server with the docker command:
         "run",
         "-d",
         "-e",
-        "YEPCODE_API_TOKEN=your_api_token_here", // See https://yepcode.io/docs/settings/api-credentials/ to get your API token
+        "YEPCODE_API_TOKEN=your_api_token_here",
         "-e",
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS=true", // Optional: Expose YepCode processes as individual MCP tools
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS=true",
         "yepcode/mcp-server"
       ]
     }
@@ -101,7 +76,7 @@ Then, you can configure the server with the docker command:
 }
 ```
 
-### Debugging 🧪
+## Debugging
 
 Debugging MCP servers can be tricky since they communicate over stdio. To make this easier, we recommend using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector), which you can run with the following command:
 
@@ -111,18 +86,21 @@ npm run inspector
 
 This will start a server where you can access debugging tools directly in your browser.
 
-## Available Tools 🧰
+## YepCode MCP Tools Reference
 
-### run_code 💻
+The MCP server provides several tools to interact with YepCode's infrastructure:
 
+### Code Execution
+
+#### run_code
 Executes code in YepCode's secure environment.
 
 ```typescript
 // Input
 {
-  code: string;
+  code: string;                          // The code to execute
   options?: {
-    language?: string;                    // Programming language (default: 'javascript')
+    language?: string;                   // Programming language (default: 'javascript')
     comment?: string;                    // Execution context
     settings?: Record<string, unknown>;  // Runtime settings
   }
@@ -130,91 +108,89 @@ Executes code in YepCode's secure environment.
 
 // Response
 {
-  success: boolean;
-  returnValue?: unknown;  // Execution result
-  logs?: string[];       // Console output
-  error?: string;
+  success: boolean;                      // Whether the execution was successful
+  returnValue?: unknown;                 // Execution result
+  logs?: string[];                       // Console output
+  error?: string;                        // Error message if execution failed
 }
 ```
 
-### Environment Variables 🔐
+### Environment Management
 
 #### set_env_var
-
-Sets an environment variable.
+Sets an environment variable in the YepCode workspace.
 
 ```typescript
 // Input
 {
-  key: string;
-  value: string;
-  isSensitive?: boolean; // Mask value in logs (default: true)
+  key: string;                           // Variable name
+  value: string;                         // Variable value
+  isSensitive?: boolean;                 // Whether to mask the value in logs (default: true)
 }
 ```
 
 #### remove_env_var
-
-Removes an environment variable.
+Removes an environment variable from the YepCode workspace.
 
 ```typescript
 // Input
 {
-  key: string;
+  key: string;                           // Name of the variable to remove
 }
 ```
 
-### Run YepCode Processes as MCP Tools ⚡
+### Process Execution
 
-#### run_yepcode_process_*
+The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by setting `YEPCODE_PROCESSES_AS_MCP_TOOLS=true` in your environment.
 
-When `YEPCODE_PROCESSES_AS_MCP_TOOLS=true`, each YepCode process becomes available as an individual MCP tool. This provides better discoverability and direct access to your processes from AI assistants.
+There will be a tool for each YepCode process: run_yepcode_process_<process_slug>.
 
-There will be a tool for each YepCode process: `run_yepcode_process_<process_slug>`.
+#### run_yepcode_process_<process_slug>
 
 ```typescript
 // Input
 {
-  parameters?: any; // This should match the input parameters specified in the process
+  parameters?: any;                      // This should match the input parameters specified in the process
   options?: {
-    tag?: string;      // Process version
-    comment?: string;  // Execution context
+    tag?: string;                        // Process version to execute
+    comment?: string;                    // Execution context
   };
-  synchronousExecution?: boolean;  // Wait for completion (default: true)
+  synchronousExecution?: boolean;        // Whether to wait for completion (default: true)
 }
 
 // Response (synchronous execution)
 {
-  executionId: string;
-  logs: string[];
-  returnValue?: unknown;
-  error?: string;
+  executionId: string;                   // Unique execution identifier
+  logs: string[];                        // Process execution logs
+  returnValue?: unknown;                 // Process output
+  error?: string;                        // Error message if execution failed
 }
 
 // Response (asynchronous execution)
 {
-  executionId: string;
+  executionId: string;                   // Unique execution identifier
 }
 ```
 
 #### get_execution
-
-Retrieves the result of an execution.
+Retrieves the result of a process execution.
 
 ```typescript
 // Input
 {
-  executionId: string;
+  executionId: string;                   // ID of the execution to retrieve
 }
 
 // Response
 {
-  executionId: string;
-  logs: string[];
-  returnValue?: unknown;
-  error?: string;
+  executionId: string;                   // Unique execution identifier
+  logs: string[];                        // Process execution logs
+  returnValue?: unknown;                 // Process output
+  error?: string;                        // Error message if execution failed
 }
 ```
 
-## License ⚖️
+## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
