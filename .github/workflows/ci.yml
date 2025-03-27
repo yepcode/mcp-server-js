@@ -1,9 +1,12 @@
-name: branches-main
+name: CI
 on:
   push:
     branches:
       - main
       - spike/*
+  pull_request:
+    branches:
+      - main
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
