@@ -1,6 +1,6 @@
 # YepCode MCP Server 🤖
 
-An MCP (Model Context Protocol) server that enables AI platforms to interact with YepCode's infrastructure. Turn your YepCode processes into powerful tools that AI assistants can use directly.
+An MCP (Model Context Protocol) server that enables AI platforms to interact with [YepCode](https://yepcode.io)'s infrastructure. Turn your YepCode processes into powerful tools that AI assistants can use directly.
 
 ## Why YepCode MCP Server? ✨
 
@@ -40,39 +40,72 @@ Build specialized tools for your AI assistants by creating YepCode processes for
 
 ## Quick Start 🚀
 
-### 1. Installation 📦
+### Integration with AI Platforms 📦
 
-```bash
-npm install @yepcode/mcp-server
-```
+#### Using NPX
 
-### 2. Configuration ⚙️
+We have published the MCP server as a package in npm, so you may use `npx` as command to start the server.
 
-Create a `.env` file:
+This is the tipical JSON confiuration to be added to tools like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop).
 
-```bash
-YEPCODE_API_KEY=your_api_key_here
-YEPCODE_PROCESSES_AS_MCP_TOOLS=true  # Optional: Expose YepCode processes as individual MCP tools
-```
-
-### 3. Integration with AI Platforms
-
-This is the tipical JSON confiuration to be added to tools like Cursor or Claude Desktop.
-
-```json
+```typescript
 {
   "mcpServers": {
     "yepcode-mcp-server": {
       "command": "npx",
-      "args": ["-y", "@yepcode/mcp-server"],
+      "args": [
+        "-y",
+        "@yepcode/mcp-server"
+      ],
       "env": {
         "YEPCODE_API_KEY":"your_api_key_here",
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true"
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true"  // Optional: Expose YepCode processes as individual MCP tools
       }
     }
   }
 }
 ```
+
+#### Using Docker
+
+We also have a Dockerfile to build a container image that you can use to start the server.
+
+For this, you need to download the source code and build the image with the following command:
+
+```bash
+docker build -t yepcode/mcp-server .
+```
+
+Then, you can configure the server with the docker command:
+
+```typescript
+{
+  "mcpServers": {
+    "yepcode-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-d",
+        "-e",
+        "YEPCODE_API_KEY=your_api_key_here",
+        "-e",
+        "YEPCODE_PROCESSES_AS_MCP_TOOLS=true",
+        "yepcode/mcp-server"
+      ]
+    }
+  }
+}
+```
+
+### Debugging 🧪
+
+Debugging MCP servers can be tricky since they communicate over stdio. To make this easier, we recommend using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector), which you can run with the following command:
+
+```bash
+npm run inspector
+```
+
+This will start a server where you can access debugging tools directly in your browser.
 
 ## Available Tools 🧰
 
@@ -86,8 +119,6 @@ Executes code in YepCode's secure environment.
   code: string;
   options?: {
     language?: string;                    // Programming language (default: 'javascript')
-    parameters?: Record<string, unknown>; // Runtime parameters
-    tag?: string;                        // Version tag
     comment?: string;                    // Execution context
     settings?: Record<string, unknown>;  // Runtime settings
   }

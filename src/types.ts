@@ -7,9 +7,12 @@ export const LogSchema = z.object({
 });
 
 export const RunCodeOptionsSchema = z.object({
-  language: z.string().optional(),
-  parameters: z.record(z.unknown()).optional(),
-  tag: z.string().optional(),
+  language: z
+    .string()
+    .optional()
+    .describe(
+      "The language to be used to run the code. We support javascript or python."
+    ),
   comment: z.string().optional(),
   settings: z.record(z.unknown()).optional(),
 });
@@ -49,9 +52,7 @@ export type RemoveEnvVarRequestSchema = z.infer<typeof RemoveEnvVarSchema>;
 
 export interface EnvVarResultSchema {
   success: boolean;
-  error?: {
-    message: string;
-  };
+  error?: string;
 }
 
 export const RunProcessSchema = z.object({

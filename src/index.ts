@@ -27,7 +27,6 @@ import {
   ToolCallRequest,
   ToolHandler,
   RunProcessSchema,
-  LogSchema,
   ExecutionResultSchema,
   GetExecutionSchema,
 } from "./types.js";
@@ -190,9 +189,7 @@ class YepCodeServer {
             text: JSON.stringify(
               {
                 success: false,
-                error: {
-                  message: errorMessage,
-                },
+                error: errorMessage,
               },
               null,
               2
