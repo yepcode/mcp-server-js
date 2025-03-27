@@ -1,0 +1,25 @@
+name: build
+on:
+  workflow_call:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: node:22-alpine
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache node
+        uses: actions/cache@v4
+        with:
+          key: "${{ runner.os }}-node-${{ hashFiles('node_modules') }}"
+          path: node_modules
+      - name: Build
+        run: |-
+          npm install
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |-
+            dist/**

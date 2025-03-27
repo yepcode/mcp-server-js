@@ -1,6 +1,6 @@
 {
   "name": "@yepcode/mcp-server",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "MCP server for YepCode",
   "main": "dist/index.js",
   "type": "module",
@@ -21,8 +21,8 @@
     "access": "public"
   },
   "engines": {
-    "node": ">=16",
-    "npm": ">=8"
+    "node": ">=18",
+    "npm": ">=9"
   },
   "files": [
     "dist"

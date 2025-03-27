@@ -1,0 +1,47 @@
+name: tags-v
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: node:22-alpine
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache node
+        uses: actions/cache@v4
+        with:
+          key: "${{ runner.os }}-node-${{ hashFiles('node_modules') }}"
+          path: node_modules
+      - name: Build
+        run: |-
+          npm install
+          npm run build
+      - name: Deploy packages to npmjs.org
+        run: |-
+          export NPM_AUTH_TOKEN=${{ secrets.PUBLIC_YEPCODE_NPM_AUTH_TOKEN }} NPM_SERVER=${{ vars.PUBLIC_YEPCODE_NPM_SERVER }}
+          cp .npmrc_template .npmrc
+          npm publish --userconfig ./.npmrc --@yepcode:registry=https://${{ vars.PUBLIC_YEPCODE_NPM_SERVER }}/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deploy
+          path: |-
+            dist/**
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: false
+          prerelease: false

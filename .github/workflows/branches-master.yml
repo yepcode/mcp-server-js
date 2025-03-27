@@ -1,0 +1,12 @@
+name: branches-main
+on:
+  push:
+    branches:
+      - main
+      - spike/*
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
