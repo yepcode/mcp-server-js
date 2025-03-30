@@ -32,7 +32,7 @@ import {
   GetExecutionSchema,
 } from "./types.js";
 import { z } from "zod";
-import { isObject } from "./utils.js";
+import { isEmpty, isObject } from "./utils.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
@@ -267,8 +267,11 @@ class YepCodeServer {
             .filter((process) => process.tags?.includes(RUN_PROCESS_TOOL_TAG))
             .map((process) => {
               const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
-              inputSchema.properties.parameters =
-                process.parametersSchema || {};
+              if (!isEmpty(process.parametersSchema)) {
+                inputSchema.properties.parameters = process.parametersSchema;
+              } else {
+                delete inputSchema.properties.parameters;
+              }
               let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
               if (toolName.length > 60) {
                 toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
