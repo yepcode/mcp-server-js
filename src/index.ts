@@ -34,6 +34,7 @@ import { z } from "zod";
 import { isObject } from "./utils.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
+const RUN_PROCESS_TOOL_TAG = "mcp-tool";
 
 class Logger {
   constructor() {}
@@ -268,7 +269,7 @@ class YepCodeServer {
           }
           tools.push(
             ...processes.data
-              .filter((process) => !process.slug.startsWith("yepcode-run-"))
+              .filter((process) => process.tags?.includes(RUN_PROCESS_TOOL_TAG))
               .map((process) => {
                 const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
                 inputSchema.properties.parameters =

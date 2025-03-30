@@ -28,7 +28,6 @@ YepCode MCP server can be integrated with AI platforms like [Cursor](https://cur
 - `YEPCODE_API_TOKEN`: Your YepCode API token. How to obtain:
   1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
   2. Get your API token from your workspace under: `Settings` > `API credentials`
-- `YEPCODE_PROCESSES_AS_MCP_TOOLS`: Set to "true" to expose YepCode processes as individual MCP tools (optional)
 
 ### Using NPX
 
@@ -42,7 +41,6 @@ Add the following configuration to your AI platform settings:
       "args": ["-y", "@yepcode/mcp-server"],
       "env": {
         "YEPCODE_API_TOKEN": "your_api_token_here",
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS": "true"
       }
     }
   }
@@ -67,8 +65,6 @@ docker build -t yepcode/mcp-server .
         "-d",
         "-e",
         "YEPCODE_API_TOKEN=your_api_token_here",
-        "-e",
-        "YEPCODE_PROCESSES_AS_MCP_TOOLS=true",
         "yepcode/mcp-server"
       ]
     }
@@ -141,7 +137,7 @@ Removes an environment variable from the YepCode workspace.
 
 ### Process Execution
 
-The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by setting `YEPCODE_PROCESSES_AS_MCP_TOOLS=true` in your environment.
+The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by just adding the `mcp-tool` tag to your process (see our docs to learn more about [process tags](https://yepcode.io/docs/processes/tags)).
 
 There will be a tool for each exposed process: `run_ycp_<process_slug>` (or `run_ycp_<process_id>` if tool name is longer than 60 characters).
 
