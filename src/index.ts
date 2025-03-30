@@ -33,6 +33,8 @@ import {
 import { z } from "zod";
 import { isObject } from "./utils.js";
 
+const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
+
 class Logger {
   constructor() {}
 
@@ -271,8 +273,12 @@ class YepCodeServer {
                 const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
                 inputSchema.properties.parameters =
                   process.parametersSchema || {};
+                let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
+                if (toolName.length > 60) {
+                  toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
+                }
                 return {
-                  name: `run_yepcode_process_${process.slug}`,
+                  name: toolName,
                   description: `${process.name}${
                     process.description ? ` - ${process.description}` : ""
                   }`,
@@ -294,9 +300,9 @@ class YepCodeServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       logger.log(`Received CallTool request for: ${request.params.name}`);
 
-      if (request.params.name.startsWith("run_yepcode_process_")) {
+      if (request.params.name.startsWith(RUN_PROCESS_TOOL_NAME_PREFIX)) {
         const processSlug = request.params.name.replace(
-          "run_yepcode_process_",
+          RUN_PROCESS_TOOL_NAME_PREFIX,
           ""
         );
 

@@ -143,9 +143,9 @@ Removes an environment variable from the YepCode workspace.
 
 The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by setting `YEPCODE_PROCESSES_AS_MCP_TOOLS=true` in your environment.
 
-There will be a tool for each YepCode process: run_yepcode_process_<process_slug>.
+There will be a tool for each exposed process: `run_ycp_<process_slug>` (or `run_ycp_<process_id>` if tool name is longer than 60 characters).
 
-#### run_yepcode_process_<process_slug>
+#### run_ycp_<process_slug>
 
 ```typescript
 // Input
