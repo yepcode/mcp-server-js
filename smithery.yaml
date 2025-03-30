@@ -1,0 +1,13 @@
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    properties:
+      yepcodeApiToken:
+        type: string
+        description: Your YepCode API token. (Sign up to https://cloud.yepcode.io and get your API token from your workspace under `Settings` > `API credentials`
+    required:
+      - yepcodeApiToken
+  commandFunction:
+    |-
+    (config) => ({ command: 'node', args: ['./dist/index.js'], env: { YEPCODE_API_TOKEN: config.yepcodeApiToken } })
