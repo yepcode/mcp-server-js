@@ -17,10 +17,52 @@ export const RunCodeOptionsSchema = z.object({
   settings: z.record(z.unknown()).optional(),
 });
 
-export const RunCodeSchema = z.object({
-  code: z.string(),
-  options: RunCodeOptionsSchema,
-});
+export const buildRunCodeSchema = (envVars: string[]) => {
+  return z.object({
+    code: z.string().describe(`
+  * We support JavaScript or Python.
+  ${
+    envVars &&
+    envVars.length > 0 &&
+    `* You may use the following environment variables already set in the execution context: ${envVars.join(
+      ", "
+    )}.`
+  }
+  * Use external dependencies freely from npm or pip. You should import them as usually, also add an anotation for us to detect them (\`// @add-package package_name\` (javascript) or \`# @add-package package_name\` (python)). When possible, use binary packages to avoid compilation issues.
+  * Include debugging logs (\`console.log()\` in javascript or \`print()\` in python) if necessary for execution tracking and error debugging.
+  * Do not catch errors, let them fail the execution.
+  * Follow the required script structure based on the chosen language:
+
+  \`\`\`js
+  // @add-package package_name_1
+  const package_name_1 = require("package_name_1");
+  // @add-package package_name_2
+  const package_name_2 = require("package_name_2");
+
+  async function main() {
+      // The generated code should go here
+      return {"success": true, "data": result}
+  }
+
+  module.exports = { main }
+  \`\`\`
+
+  \`\`\`py
+  # @add-package package_name_1
+  import package_name_1
+  # @add-package package_name_2
+  from package_name_2.module import Module
+
+  def main():
+      # The generated code should go here
+      return {"success": True, "data": result}
+  \`\`\`
+  `),
+    options: RunCodeOptionsSchema,
+  });
+};
+
+export const RunCodeSchema = buildRunCodeSchema([]);
 
 export type RunCodeRequestSchema = z.infer<typeof RunCodeSchema>;
 

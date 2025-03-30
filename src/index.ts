@@ -22,6 +22,7 @@ import {
 import dotenv from "dotenv";
 import {
   RunCodeSchema,
+  buildRunCodeSchema,
   SetEnvVarSchema,
   RemoveEnvVarSchema,
   ToolCallRequest,
@@ -225,74 +226,72 @@ class YepCodeServer {
   }
 
   private setupToolHandlers(): void {
-    const baseTools = [
-      {
-        name: "run_code",
-        description: "Execute code using YepCode's infrastructure",
-        inputSchema: zodToJsonSchema(RunCodeSchema),
-      },
-      {
-        name: "set_env_var",
-        description: "Set a YepCode environment variable",
-        inputSchema: zodToJsonSchema(SetEnvVarSchema),
-      },
-      {
-        name: "remove_env_var",
-        description: "Remove a YepCode environment variable",
-        inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
-      },
-    ];
-
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      logger.log(
-        `Handling ListTools request${
-          process.env.YEPCODE_PROCESSES_AS_MCP_TOOLS
-            ? " with processes as MCP tools"
-            : ""
-        }`
-      );
-      const tools = [...baseTools];
-      if (process.env.YEPCODE_PROCESSES_AS_MCP_TOOLS) {
-        tools.push({
+      logger.log(`Handling ListTools request`);
+      const envVars = await this.yepCodeEnv.getEnvVars();
+      const tools = [
+        {
+          name: "run_code",
+          description: "Execute code using YepCode's infrastructure",
+          inputSchema: zodToJsonSchema(
+            buildRunCodeSchema(envVars.map((envVar) => envVar.key))
+          ),
+        },
+        {
+          name: "set_env_var",
+          description: "Set a YepCode environment variable",
+          inputSchema: zodToJsonSchema(SetEnvVarSchema),
+        },
+        {
+          name: "remove_env_var",
+          description: "Remove a YepCode environment variable",
+          inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
+        },
+        {
           name: "get_execution",
           description:
             "Get the status, result, logs, timeline, etc. of a YepCode execution",
           inputSchema: zodToJsonSchema(GetExecutionSchema),
-        });
-        let page = 0;
-        let limit = 100;
-        while (true) {
-          const processes = await this.yepCodeApi.getProcesses({ page, limit });
-          logger.log(`Found ${processes?.data?.length} processes`);
-          if (!processes.data) {
-            break;
-          }
-          tools.push(
-            ...processes.data
-              .filter((process) => process.tags?.includes(RUN_PROCESS_TOOL_TAG))
-              .map((process) => {
-                const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
-                inputSchema.properties.parameters =
-                  process.parametersSchema || {};
-                let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
-                if (toolName.length > 60) {
-                  toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
-                }
-                return {
-                  name: toolName,
-                  description: `${process.name}${
-                    process.description ? ` - ${process.description}` : ""
-                  }`,
-                  inputSchema,
-                };
-              })
-          );
-          if (!processes.hasNextPage) {
-            break;
-          }
-          page++;
+        },
+      ];
+      let page = 0;
+      let limit = 100;
+      while (true) {
+        const processes = await this.yepCodeApi.getProcesses({ page, limit });
+        logger.log(`Found ${processes?.data?.length} processes`);
+        if (!processes.data) {
+          break;
         }
+        tools.push(
+          ...processes.data
+            .filter((process) => process.tags?.includes(RUN_PROCESS_TOOL_TAG))
+            .map((process) => {
+              const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
+              inputSchema.properties.parameters =
+                process.parametersSchema || {};
+              let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
+              if (toolName.length > 60) {
+                toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
+              }
+              return {
+                name: toolName,
+                description: `${process.name}${
+                  process.description ? ` - ${process.description}` : ""
+                }`,
+                inputSchema,
+              };
+            })
+        );
+        if (!processes.hasNextPage) {
+          break;
+        }
+        page++;
       }
+      logger.log(
+        `Found ${tools.length} tools: ${tools
+          .map((tool) => tool.name)
+          .join(", ")}`
+      );
       return {
         tools,
       };
@@ -302,7 +301,7 @@ class YepCodeServer {
       logger.log(`Received CallTool request for: ${request.params.name}`);
 
       if (request.params.name.startsWith(RUN_PROCESS_TOOL_NAME_PREFIX)) {
-        const processSlug = request.params.name.replace(
+        const processId = request.params.name.replace(
           RUN_PROCESS_TOOL_NAME_PREFIX,
           ""
         );
@@ -317,7 +316,7 @@ class YepCodeServer {
               ...options
             } = data;
             const { executionId } = await this.yepCodeApi.executeProcessAsync(
-              processSlug,
+              processId,
               parameters,
               {
                 ...options,
