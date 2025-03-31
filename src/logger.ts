@@ -1,42 +1,55 @@
 import { isObject } from "./utils.js";
 
 class Logger {
-  private name: string;
+  private name: string | undefined;
+  private logsToStderr: boolean;
 
-  constructor(name: string) {
+  constructor(
+    name: string | undefined = undefined,
+    { logsToStderr = false }: { logsToStderr?: boolean } = {}
+  ) {
     this.name = name;
+    this.logsToStderr = logsToStderr;
   }
 
-  log(message: string, data: unknown = undefined) {
-    const timestamp = new Date().toISOString();
+  private log(level: string, message: string, data: unknown = undefined) {
+    let dataOutput = undefined;
+    if (data) {
+      if (data instanceof Error) {
+        dataOutput = {
+          error: data.stack || data.message || String(data),
+        };
+      } else if (isObject(data)) {
+        dataOutput = JSON.stringify(data);
+      } else {
+        dataOutput = String(data);
+      }
+    }
+
     const logEntry = {
-      name: this.name,
-      timestamp,
-      level: "INFO",
-      message,
-      ...(data
-        ? { data: isObject(data) ? JSON.stringify(data) : data }
-        : undefined),
+      time: new Date().toISOString(),
+      level_name: level,
+      message: `${this.name ? `[${this.name}] ` : ""}${message}`,
+      data: dataOutput,
     };
-    console.error(JSON.stringify(logEntry));
+    const logString = JSON.stringify(logEntry);
+    if (this.logsToStderr || level === "ERROR") {
+      console.error(logString);
+    } else {
+      console.log(logString);
+    }
   }
 
   error(message: string, error: Error | undefined = undefined) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      name: this.name,
-      timestamp,
-      level: "ERROR",
-      message,
-      ...(error
-        ? error instanceof Error
-          ? {
-              error: error.stack || error.message || String(error),
-            }
-          : error
-        : undefined),
-    };
-    console.error(JSON.stringify(logEntry));
+    this.log("ERROR", message, error);
+  }
+
+  warn(message: string, data: unknown = undefined) {
+    this.log("WARN", message, data);
+  }
+
+  info(message: string, data: unknown = undefined) {
+    this.log("INFO", message, data);
   }
 }
 

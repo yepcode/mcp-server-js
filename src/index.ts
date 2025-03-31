@@ -4,25 +4,25 @@ import Logger from "./logger.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import YepCodeMcpServer from "./server.js";
 
-const logger = new Logger("StdioServer");
+const logger = new Logger("StdioServer", { logsToStderr: true });
 
 const main = async (): Promise<void> => {
-  const server = new YepCodeMcpServer({});
-  logger.log("Starting YepCode MCP server");
+  const server = new YepCodeMcpServer({}, { logsToStderr: true });
+  logger.info("Starting YepCode MCP server");
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    logger.log("MCP server connected to transport");
+    logger.info("MCP server connected to transport");
 
     // Handle process termination
     process.on("SIGINT", async () => {
-      logger.log("Received SIGINT, shutting down");
+      logger.info("Received SIGINT, shutting down");
       await server.close();
       process.exit(0);
     });
 
     process.on("SIGTERM", async () => {
-      logger.log("Received SIGTERM, shutting down");
+      logger.info("Received SIGTERM, shutting down");
       await server.close();
       process.exit(0);
     });

@@ -44,7 +44,10 @@ class YepCodeMcpServer extends Server {
   private yepCodeApi: YepCodeApi;
   private logger: Logger;
 
-  constructor(config: YepCodeApiConfig) {
+  constructor(
+    config: YepCodeApiConfig,
+    { logsToStderr = false }: { logsToStderr?: boolean } = {}
+  ) {
     super(
       {
         name: "yepcode-mcp-server",
@@ -58,7 +61,6 @@ class YepCodeMcpServer extends Server {
         },
       }
     );
-    this.logger = new Logger("YepCodeServer");
 
     this.setupHandlers();
     this.setupErrorHandling();
@@ -67,8 +69,14 @@ class YepCodeMcpServer extends Server {
       this.yepCodeRun = new YepCodeRun(config);
       this.yepCodeEnv = new YepCodeEnv(config);
       this.yepCodeApi = YepCodeApiManager.getInstance(config);
-      this.logger.log("YepCode initialized successfully");
+      this.logger = new Logger(this.yepCodeApi.getClientId(), {
+        logsToStderr,
+      });
+      this.logger.info("YepCode initialized successfully");
     } catch (error) {
+      this.logger = new Logger("YepCodeMcpServer", {
+        logsToStderr,
+      });
       this.logger.error("Exception while initializing YepCode", error as Error);
       throw new McpError(
         ErrorCode.InternalError,
@@ -83,7 +91,7 @@ class YepCodeMcpServer extends Server {
     };
 
     process.on("SIGINT", async () => {
-      this.logger.log("Received SIGINT, shutting down");
+      this.logger.info("Received SIGINT, shutting down");
       await this.close();
       process.exit(0);
     });
@@ -119,7 +127,7 @@ class YepCodeMcpServer extends Server {
     }
 
     try {
-      this.logger.log(
+      this.logger.info(
         `Handling tool request: ${request.params.name}`,
         request.params.arguments
       );
@@ -187,7 +195,7 @@ class YepCodeMcpServer extends Server {
 
   private setupToolHandlers(): void {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
-      this.logger.log(`Handling ListTools request`);
+      this.logger.info(`Handling ListTools request`);
       const envVars = await this.yepCodeEnv.getEnvVars();
       const tools = [
         {
@@ -218,7 +226,7 @@ class YepCodeMcpServer extends Server {
       let limit = 100;
       while (true) {
         const processes = await this.yepCodeApi.getProcesses({ page, limit });
-        this.logger.log(`Found ${processes?.data?.length} processes`);
+        this.logger.info(`Found ${processes?.data?.length} processes`);
         if (!processes.data) {
           break;
         }
@@ -250,7 +258,7 @@ class YepCodeMcpServer extends Server {
         }
         page++;
       }
-      this.logger.log(
+      this.logger.info(
         `Found ${tools.length} tools: ${tools
           .map((tool) => tool.name)
           .join(", ")}`
@@ -261,7 +269,7 @@ class YepCodeMcpServer extends Server {
     });
 
     this.setRequestHandler(CallToolRequestSchema, async (request) => {
-      this.logger.log(`Received CallTool request for: ${request.params.name}`);
+      this.logger.info(`Received CallTool request for: ${request.params.name}`);
 
       if (request.params.name.startsWith(RUN_PROCESS_TOOL_NAME_PREFIX)) {
         const processId = request.params.name.replace(
@@ -307,7 +315,7 @@ class YepCodeMcpServer extends Server {
               let executionError: string | undefined;
               let returnValue: unknown;
 
-              this.logger.log("Running code with YepCode", {
+              this.logger.info("Running code with YepCode", {
                 codeLength: code.length,
                 options,
               });
@@ -324,7 +332,7 @@ class YepCodeMcpServer extends Server {
                 },
                 onFinish: (value) => {
                   returnValue = value;
-                  this.logger.log("YepCode execution finished", {
+                  this.logger.info("YepCode execution finished", {
                     hasReturnValue: value !== undefined,
                   });
                 },
@@ -347,7 +355,7 @@ class YepCodeMcpServer extends Server {
             request,
             async (data) => {
               const { key, value, isSensitive } = data;
-              this.logger.log(`Setting environment variable: ${key}`, {
+              this.logger.info(`Setting environment variable: ${key}`, {
                 isSensitive,
               });
               await this.yepCodeEnv.setEnvVar(key, value, isSensitive);
@@ -360,7 +368,7 @@ class YepCodeMcpServer extends Server {
             RemoveEnvVarSchema,
             request,
             async (data) => {
-              this.logger.log(`Removing environment variable: ${data.key}`);
+              this.logger.info(`Removing environment variable: ${data.key}`);
               await this.yepCodeEnv.delEnvVar(data.key);
               return {};
             }
