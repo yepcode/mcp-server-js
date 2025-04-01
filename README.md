@@ -22,7 +22,24 @@ An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) 
 
 ## Integration Guide
 
-YepCode MCP server can be integrated with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop) using either NPX or Docker.
+YepCode MCP server can be integrated with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop) using either a remote approach (we offer a hosted version of the MCP server) or a local approach (NPX or Docker installation is required).
+
+### Remote Approach using SSE Server
+
+1. Go to your YepCode workspace under `Settings` > `API credentials`, and copy the MCP Server URL.
+2. Add the following configuration to your AI platform settings:
+
+```typescript
+{
+  "mcpServers": {
+    "yepcode-mcp-server": {
+      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse"
+    }
+  }
+}
+```
+
+### Local Approach
 
 #### Required Environment Variables
 
@@ -30,7 +47,7 @@ YepCode MCP server can be integrated with AI platforms like [Cursor](https://cur
   1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
   2. Get your API token from your workspace under: `Settings` > `API credentials`
 
-### Using NPX
+#### Using NPX
 
 Add the following configuration to your AI platform settings:
 
@@ -48,14 +65,16 @@ Add the following configuration to your AI platform settings:
 }
 ```
 
-### Using Docker
+#### Using Docker
 
 1. Build the container image:
+
 ```bash
 docker build -t yepcode/mcp-server .
 ```
 
 2. Add the following configuration to your AI platform settings:
+
 ```typescript
 {
   "mcpServers": {
