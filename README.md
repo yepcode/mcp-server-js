@@ -26,8 +26,9 @@ YepCode MCP server can be integrated with AI platforms like [Cursor](https://cur
 
 ### Remote Approach using SSE Server
 
-1. Go to your YepCode workspace under `Settings` > `API credentials`, and copy the MCP Server URL.
-2. Add the following configuration to your AI platform settings:
+1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
+2. Get your MCP Server URL from your workspace under: `Settings` > `API credentials`.
+3. Add the following configuration to your AI platform settings:
 
 ```typescript
 {
