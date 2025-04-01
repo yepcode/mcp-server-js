@@ -67,7 +67,6 @@ export const RunCodeSchema = buildRunCodeSchema([]);
 export type RunCodeRequestSchema = z.infer<typeof RunCodeSchema>;
 
 export interface RunCodeResultSchema {
-  success: boolean;
   returnValue?: unknown;
   logs: Array<typeof LogSchema>;
   error?: string;
@@ -93,7 +92,6 @@ export type SetEnvVarRequestSchema = z.infer<typeof SetEnvVarSchema>;
 export type RemoveEnvVarRequestSchema = z.infer<typeof RemoveEnvVarSchema>;
 
 export interface EnvVarResultSchema {
-  success: boolean;
   error?: string;
 }
 

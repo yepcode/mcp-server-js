@@ -110,6 +110,7 @@ The MCP server provides several tools to interact with YepCode's infrastructure:
 ### Code Execution
 
 #### run_code
+
 Executes code in YepCode's secure environment.
 
 ```typescript
@@ -125,7 +126,6 @@ Executes code in YepCode's secure environment.
 
 // Response
 {
-  success: boolean;                      // Whether the execution was successful
   returnValue?: unknown;                 // Execution result
   logs?: string[];                       // Console output
   error?: string;                        // Error message if execution failed
@@ -135,6 +135,7 @@ Executes code in YepCode's secure environment.
 ### Environment Management
 
 #### set_env_var
+
 Sets an environment variable in the YepCode workspace.
 
 ```typescript
@@ -147,6 +148,7 @@ Sets an environment variable in the YepCode workspace.
 ```
 
 #### remove_env_var
+
 Removes an environment variable from the YepCode workspace.
 
 ```typescript
@@ -190,6 +192,7 @@ There will be a tool for each exposed process: `run_ycp_<process_slug>` (or `run
 ```
 
 #### get_execution
+
 Retrieves the result of a process execution.
 
 ```typescript
@@ -210,4 +213,3 @@ Retrieves the result of a process execution.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-

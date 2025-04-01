@@ -119,7 +119,10 @@ class YepCodeMcpServer extends Server {
     schema: z.ZodSchema<T>,
     request: ToolCallRequest,
     handler: ToolHandler<T>
-  ): Promise<{ content: Array<{ type: string; text: string }> }> {
+  ): Promise<{
+    isError: boolean;
+    content: Array<{ type: string; text: string }>;
+  }> {
     const parsed = schema.safeParse(request.params.arguments);
     if (!parsed.success) {
       this.logger.error("Invalid request arguments", parsed.error);
@@ -133,12 +136,12 @@ class YepCodeMcpServer extends Server {
       );
       const result = await handler(parsed.data);
       return {
+        isError: false,
         content: [
           {
             type: "text",
             text: JSON.stringify(
               {
-                success: true,
                 ...(result as Record<string, unknown>),
               },
               null,
@@ -155,12 +158,12 @@ class YepCodeMcpServer extends Server {
         error as Error
       );
       return {
+        isError: true,
         content: [
           {
             type: "text",
             text: JSON.stringify(
               {
-                success: false,
                 error: errorMessage,
               },
               null,
@@ -341,7 +344,6 @@ class YepCodeMcpServer extends Server {
               await execution.waitForDone();
 
               return {
-                success: !executionError,
                 logs,
                 returnValue,
                 ...(executionError && { error: executionError }),
