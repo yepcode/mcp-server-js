@@ -41,15 +41,15 @@ class Logger {
   }
 
   error(message: string, error: Error | undefined = undefined) {
-    this.log("ERROR", message, error);
+    this.log("error", message, error);
   }
 
   warn(message: string, data: unknown = undefined) {
-    this.log("WARN", message, data);
+    this.log("warn", message, data);
   }
 
   info(message: string, data: unknown = undefined) {
-    this.log("INFO", message, data);
+    this.log("info", message, data);
   }
 }
 
