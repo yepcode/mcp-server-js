@@ -30,7 +30,7 @@ import {
   GetExecutionSchema,
 } from "./types.js";
 import { z } from "zod";
-import { isEmpty } from "./utils.js";
+import { getVersion, isEmpty } from "./utils.js";
 import Logger from "./logger.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
@@ -51,7 +51,7 @@ class YepCodeMcpServer extends Server {
     super(
       {
         name: "yepcode-mcp-server",
-        version: "0.0.1",
+        version: getVersion(),
       },
       {
         capabilities: {
