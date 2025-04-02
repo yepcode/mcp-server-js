@@ -131,8 +131,9 @@ class YepCodeMcpServer extends Server {
 
     try {
       this.logger.info(
-        `Handling tool request: ${request.params.name}`,
-        request.params.arguments
+        `Handling tool request: ${request.params.name} with ${
+          request.params.arguments?.length || "no"
+        } arguments`
       );
       const result = await handler(parsed.data);
       return {
