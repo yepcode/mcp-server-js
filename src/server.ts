@@ -200,14 +200,24 @@ class YepCodeMcpServer extends Server {
       const tools = [
         {
           name: "run_code",
-          description: "Execute code using YepCode's infrastructure",
+          description: `Execute LLM-generated code safely in YepCode’s secure, production-grade sandboxes.
+This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
+
+It supports external dependencies (NPM or PyPI), so it’s perfect for:
+	•	Complex data transformations
+	•	API calls to services not yet integrated
+	•	Custom logic implementations
+	•	One-off utility scripts
+
+Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here!`,
           inputSchema: zodToJsonSchema(
             buildRunCodeSchema(envVars.map((envVar) => envVar.key))
           ),
         },
         {
           name: "set_env_var",
-          description: "Set a YepCode environment variable",
+          description:
+            "Set a YepCode environment variable to be available for future code executions",
           inputSchema: zodToJsonSchema(SetEnvVarSchema),
         },
         {

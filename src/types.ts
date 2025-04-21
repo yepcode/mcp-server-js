@@ -20,7 +20,7 @@ export const RunCodeOptionsSchema = z.object({
 export const buildRunCodeSchema = (envVars: string[]) => {
   return z.object({
     code: z.string().describe(`
-  * We support JavaScript or Python.
+  * We support JavaScript (NodeJS v20) or Python (v3.12).
   ${
     envVars &&
     envVars.length > 0 &&
@@ -28,7 +28,9 @@ export const buildRunCodeSchema = (envVars: string[]) => {
       ", "
     )}.`
   }
-  * Use external dependencies freely from npm or pip. You should import them as usually, also add an anotation for us to detect them (\`// @add-package package_name\` (javascript) or \`# @add-package package_name\` (python)). When possible, use binary packages to avoid compilation issues.
+  * Use external dependencies freely from NPM or PyPI. You should import them as usually.
+    * If package name is different from the import sentence, add an anotation for us to detect them (\`// @add-package package_name\` (javascript) or \`# @add-package package_name\` (python)).
+    * When possible, use binary packages to avoid compilation issues.
   * Include debugging logs (\`console.log()\` in javascript or \`print()\` in python) if necessary for execution tracking and error debugging.
   * Do not catch errors, let them fail the execution.
   * Follow the required script structure based on the chosen language:
