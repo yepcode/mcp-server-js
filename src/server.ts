@@ -43,10 +43,13 @@ class YepCodeMcpServer extends Server {
   private yepCodeEnv: YepCodeEnv;
   private yepCodeApi: YepCodeApi;
   private logger: Logger;
-
+  private disableRunCodeTool: boolean;
   constructor(
     config: YepCodeApiConfig,
-    { logsToStderr = false }: { logsToStderr?: boolean } = {}
+    {
+      logsToStderr = false,
+      disableRunCodeTool = false,
+    }: { logsToStderr?: boolean; disableRunCodeTool?: boolean } = {}
   ) {
     super(
       {
@@ -61,6 +64,8 @@ class YepCodeMcpServer extends Server {
         },
       }
     );
+
+    this.disableRunCodeTool = disableRunCodeTool;
 
     this.setupHandlers();
     this.setupErrorHandling();
@@ -197,10 +202,12 @@ class YepCodeMcpServer extends Server {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
       const envVars = await this.yepCodeEnv.getEnvVars();
-      const tools = [
-        {
-          name: "run_code",
-          description: `Execute LLM-generated code safely in YepCode’s secure, production-grade sandboxes.
+      const tools = this.disableRunCodeTool
+        ? []
+        : [
+            {
+              name: "run_code",
+              description: `Execute LLM-generated code safely in YepCode’s secure, production-grade sandboxes.
 This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
 
 It supports external dependencies (NPM or PyPI), so it’s perfect for:
@@ -210,28 +217,28 @@ It supports external dependencies (NPM or PyPI), so it’s perfect for:
 	•	One-off utility scripts
 
 Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here!`,
-          inputSchema: zodToJsonSchema(
-            buildRunCodeSchema(envVars.map((envVar) => envVar.key))
-          ),
-        },
-        {
-          name: "set_env_var",
-          description:
-            "Set a YepCode environment variable to be available for future code executions",
-          inputSchema: zodToJsonSchema(SetEnvVarSchema),
-        },
-        {
-          name: "remove_env_var",
-          description: "Remove a YepCode environment variable",
-          inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
-        },
-        {
-          name: "get_execution",
-          description:
-            "Get the status, result, logs, timeline, etc. of a YepCode execution",
-          inputSchema: zodToJsonSchema(GetExecutionSchema),
-        },
-      ];
+              inputSchema: zodToJsonSchema(
+                buildRunCodeSchema(envVars.map((envVar) => envVar.key))
+              ),
+            },
+            {
+              name: "set_env_var",
+              description:
+                "Set a YepCode environment variable to be available for future code executions",
+              inputSchema: zodToJsonSchema(SetEnvVarSchema),
+            },
+            {
+              name: "remove_env_var",
+              description: "Remove a YepCode environment variable",
+              inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
+            },
+            {
+              name: "get_execution",
+              description:
+                "Get the status, result, logs, timeline, etc. of a YepCode execution",
+              inputSchema: zodToJsonSchema(GetExecutionSchema),
+            },
+          ];
       let page = 0;
       let limit = 100;
       while (true) {
@@ -316,6 +323,13 @@ Tip: First try to find a tool that matches your task, but if not available, try 
 
       switch (request.params.name) {
         case "run_code":
+          if (this.disableRunCodeTool) {
+            this.logger.error("Run code tool is disabled");
+            throw new McpError(
+              ErrorCode.MethodNotFound,
+              "Run code tool is disabled"
+            );
+          }
           return this.handleToolRequest(
             RunCodeSchema,
             request,

@@ -8,7 +8,11 @@ import { getVersion } from "./utils.js";
 const logger = new Logger("StdioServer", { logsToStderr: true });
 
 const main = async (): Promise<void> => {
-  const server = new YepCodeMcpServer({}, { logsToStderr: true });
+  const disableRunCodeTool = process.env.DISABLE_RUN_CODE_TOOL === "true";
+  const server = new YepCodeMcpServer(
+    {},
+    { logsToStderr: true, disableRunCodeTool }
+  );
   try {
     const transport = new StdioServerTransport();
     await server.connect(transport);
