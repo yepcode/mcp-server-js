@@ -44,12 +44,18 @@ class YepCodeMcpServer extends Server {
   private yepCodeApi: YepCodeApi;
   private logger: Logger;
   private disableRunCodeTool: boolean;
+  private skipRunCodeCleanup: boolean;
   constructor(
     config: YepCodeApiConfig,
     {
       logsToStderr = false,
       disableRunCodeTool = false,
-    }: { logsToStderr?: boolean; disableRunCodeTool?: boolean } = {}
+      skipRunCodeCleanup = false,
+    }: {
+      logsToStderr?: boolean;
+      disableRunCodeTool?: boolean;
+      skipRunCodeCleanup?: boolean;
+    } = {}
   ) {
     super(
       {
@@ -66,7 +72,7 @@ class YepCodeMcpServer extends Server {
     );
 
     this.disableRunCodeTool = disableRunCodeTool;
-
+    this.skipRunCodeCleanup = skipRunCodeCleanup;
     this.setupHandlers();
     this.setupErrorHandling();
 
@@ -345,6 +351,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
               });
 
               const execution = await this.yepCodeRun.run(code, {
+                removeOnDone: !this.skipRunCodeCleanup,
                 ...options,
                 initiatedBy: "@yepcode/mcp-server",
                 onLog: (log) => {

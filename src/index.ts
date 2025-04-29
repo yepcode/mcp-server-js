@@ -8,10 +8,16 @@ import { getVersion } from "./utils.js";
 const logger = new Logger("StdioServer", { logsToStderr: true });
 
 const main = async (): Promise<void> => {
-  const disableRunCodeTool = process.env.DISABLE_RUN_CODE_TOOL === "true";
+  let disableRunCodeTool = false;
+  let skipRunCodeCleanup = false;
+  if (process.env.YEPCODE_MCP_OPTIONS) {
+    const mcpOptions = process.env.YEPCODE_MCP_OPTIONS.split(",");
+    disableRunCodeTool = mcpOptions.includes("disableRunCodeTool");
+    skipRunCodeCleanup = mcpOptions.includes("skipRunCodeCleanup");
+  }
   const server = new YepCodeMcpServer(
     {},
-    { logsToStderr: true, disableRunCodeTool }
+    { logsToStderr: true, disableRunCodeTool, skipRunCodeCleanup }
   );
   try {
     const transport = new StdioServerTransport();

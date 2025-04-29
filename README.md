@@ -132,18 +132,21 @@ Executes code in YepCode's secure environment.
 }
 ```
 
-##### Disable the run_code tool
+##### MCP Options
 
-In some cases, you may want to disable the `run_code` tool. For example, if you want to use the MCP server as a provider only for the existing tools in your YepCode account.
+YepCode MCP server supports the following options:
 
-This is the MCP server configuration with the `run_code` tool disabled:
+- Disable the run_code tool: In some cases, you may want to disable the `run_code` tool. For example, if you want to use the MCP server as a provider only for the existing tools in your YepCode account.
+- Skip the run_code cleanup: By default, run_code processes source code is removed after execution. If you want to keep it for audit purposes, you can use this option.
+
+Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` environment variable or as a query parameter in the MCP server URL.
 
 ```typescript
 // SSE server configuration
 {
   "mcpServers": {
     "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?disableRunCodeTool=true"
+      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=disableRunCodeTool,skipRunCodeCleanup"
     }
   }
 }
@@ -156,7 +159,7 @@ This is the MCP server configuration with the `run_code` tool disabled:
       "args": ["-y", "@yepcode/mcp-server"],
       "env": {
         "YEPCODE_API_TOKEN": "your_api_token_here",
-        "DISABLE_RUN_CODE_TOOL": "true"
+        "YEPCODE_MCP_OPTIONS": "disableRunCodeTool,skipRunCodeCleanup"
       }
     }
   }
