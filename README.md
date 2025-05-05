@@ -103,8 +103,6 @@ npm run inspector
 
 This will start a server where you can access debugging tools directly in your browser.
 
-
-
 ## Running evals
 
 The evals package loads an mcp client that then runs the index.ts file, so there is no need to rebuild between tests. You can load environment variables by prefixing the npx command. Full documentation can be found [here](https://www.mcpevals.io/docs).
