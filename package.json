@@ -49,8 +49,8 @@
     "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.10.1",
-    "@yepcode/run": "1.3.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@yepcode/run": "^1.3.0",
     "dotenv": "^16.4.7",
     "zod": "^3.24.2"
   },
