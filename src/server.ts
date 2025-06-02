@@ -80,7 +80,7 @@ class YepCodeMcpServer extends Server {
       this.yepCodeRun = new YepCodeRun(config);
       this.yepCodeEnv = new YepCodeEnv(config);
       this.yepCodeApi = YepCodeApiManager.getInstance(config);
-      this.logger = new Logger(this.yepCodeApi.getClientId(), {
+      this.logger = new Logger(this.yepCodeApi.getTeamId(), {
         logsToStderr,
       });
       this.logger.info("YepCode initialized successfully");
