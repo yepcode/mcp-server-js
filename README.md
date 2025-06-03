@@ -40,6 +40,35 @@ YepCode MCP server can be integrated with AI platforms like [Cursor](https://cur
 }
 ```
 
+We also support authentication using a Bearer token in the HTTP `Authorization` header. This is the recommended and most secure way to authenticate with the YepCode MCP server when your AI platform supports it.
+
+- **Direct Bearer Authentication:**
+  - If your AI platform or MCP client supports setting the `Authorization` header directly, simply provide your YepCode MCP Server URL with the required Bearer token. See your platform's documentation for details. For example, in Cursor, refer to their [MCP authentication docs](https://docs.cursor.com/context/model-context-protocol#authentication).
+
+- **Using Remote-MCP as a Proxy:**
+  - Some AI platforms or MCP clients do **not** natively support setting the `Authorization` header. In these cases, you can use [Remote-MCP](https://github.com/ssut/Remote-MCP) as a proxy. Remote-MCP injects the `Authorization` header for you, allowing you to connect securely to YepCode MCP Server.
+
+**Example configuration using Remote-MCP:**
+
+```typescript
+{
+  "mcpServers": {
+    "remote-mcp": {
+      "command": "npx",
+      "args": ["-y", "@remote-mcp/client"],
+      "env": {
+        "REMOTE_MCP_URL": "https://cloud.yepcode.io/mcp/sse",
+        "HTTP_HEADER_Authorization": "Bearer <sk-c2E....RD>"
+      }
+    }
+  }
+}
+```
+
+> **Note:**
+> - Use Remote-MCP only if your platform does not support Bearer authentication natively.
+> - For the most up-to-date information on authentication support, check your platform's documentation or the [Model Context Protocol docs](https://modelcontextprotocol.io/introduction).
+
 ### Local Approach
 
 #### Required Environment Variables
