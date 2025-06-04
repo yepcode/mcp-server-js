@@ -24,11 +24,14 @@ An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) 
 
 YepCode MCP server can be integrated with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop) using either a remote approach (we offer a hosted version of the MCP server) or a local approach (NPX or Docker installation is required).
 
-### Remote Approach using SSE Server
+For both approaches, you need to get your YepCode API credentials:
 
 1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
-2. Get your MCP Server URL from your workspace under: `Settings` > `API credentials`.
-3. Add the following configuration to your AI platform settings:
+2. Visit `Settings` > `API credentials` to create a new API token.
+
+### Remote Approach using SSE Server
+
+- If your MCP Client doesn't support authentication headers, just use the SSE server URL that includes the API Token. Use a configuration similar to the following:
 
 ```typescript
 {
@@ -40,46 +43,26 @@ YepCode MCP server can be integrated with AI platforms like [Cursor](https://cur
 }
 ```
 
-We also support authentication using a Bearer token in the HTTP `Authorization` header. This is the recommended and most secure way to authenticate with the YepCode MCP server when your AI platform supports it.
-
-- **Direct Bearer Authentication:**
-  - If your AI platform or MCP client supports setting the `Authorization` header directly, simply provide your YepCode MCP Server URL with the required Bearer token. See your platform's documentation for details. For example, in Cursor, refer to their [MCP authentication docs](https://docs.cursor.com/context/model-context-protocol#authentication).
-
-- **Using Remote-MCP as a Proxy:**
-  - Some AI platforms or MCP clients do **not** natively support setting the `Authorization` header. In these cases, you can use [Remote-MCP](https://github.com/ssut/Remote-MCP) as a proxy. Remote-MCP injects the `Authorization` header for you, allowing you to connect securely to YepCode MCP Server.
-
-**Example configuration using Remote-MCP:**
+- If your MCP Client supports authentication headers, you can use the HTTP server URL that includes the API Token. Use a configuration similar to the following:
 
 ```typescript
 {
   "mcpServers": {
-    "remote-mcp": {
-      "command": "npx",
-      "args": ["-y", "@remote-mcp/client"],
-      "env": {
-        "REMOTE_MCP_URL": "https://cloud.yepcode.io/mcp/sse",
-        "HTTP_HEADER_Authorization": "Bearer <sk-c2E....RD>"
+    "yepcode-mcp-server": {
+      "url": "https://cloud.yepcode.io/mcp/sse"
+      "headers": {
+        "Authorization": "Bearer <sk-c2E....RD>"
       }
     }
   }
 }
 ```
 
-> **Note:**
-> - Use Remote-MCP only if your platform does not support Bearer authentication natively.
-> - For the most up-to-date information on authentication support, check your platform's documentation or the [Model Context Protocol docs](https://modelcontextprotocol.io/introduction).
-
 ### Local Approach
-
-#### Required Environment Variables
-
-- `YEPCODE_API_TOKEN`: Your YepCode API token. How to obtain:
-  1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
-  2. Get your API token from your workspace under: `Settings` > `API credentials`
 
 #### Using NPX
 
-Add the following configuration to your AI platform settings:
+Make sure you have Node.js installed (version 18 or higher), and use a configuration similar to the following:
 
 ```typescript
 {
@@ -103,7 +86,7 @@ Add the following configuration to your AI platform settings:
 docker build -t yepcode/mcp-server .
 ```
 
-2. Add the following configuration to your AI platform settings:
+2. Use a configuration similar to the following:
 
 ```typescript
 {
