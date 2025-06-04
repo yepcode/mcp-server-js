@@ -49,7 +49,7 @@ For both approaches, you need to get your YepCode API credentials:
 {
   "mcpServers": {
     "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sse"
+      "url": "https://cloud.yepcode.io/mcp/sse",
       "headers": {
         "Authorization": "Bearer <sk-c2E....RD>"
       }
@@ -71,7 +71,7 @@ Make sure you have Node.js installed (version 18 or higher), and use a configura
       "command": "npx",
       "args": ["-y", "@yepcode/mcp-server"],
       "env": {
-        "YEPCODE_API_TOKEN": "your_api_token_here",
+        "YEPCODE_API_TOKEN": "your_api_token_here"
       }
     }
   }
