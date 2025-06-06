@@ -1,6 +1,6 @@
-import { fileURLToPath } from "url";
-import { join, dirname } from "path";
-import { readFileSync } from "fs";
+// import { fileURLToPath } from "url";
+// import { join, dirname } from "path";
+// import { readFileSync } from "fs";
 
 export const isEmpty = (value: unknown): boolean => {
   return (
@@ -19,16 +19,17 @@ export const isString = (value: unknown): value is string => {
   return typeof value === "string";
 };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
 export function getVersion(): string {
-  try {
-    const packageJsonPath = join(__dirname, "../package.json");
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
-    return packageJson.version || "1.0.0";
-  } catch (err) {
-    console.error("[yepcode-mcp-server]", "Unable to retrieve version:", err);
-    return "unknown";
-  }
+  return "1.0.0";
+  // try {
+  //   const packageJsonPath = join(__dirname, "../package.json");
+  //   const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));
+  //   return packageJson.version || "1.0.0";
+  // } catch (err) {
+  //   console.error("[yepcode-mcp-server]", "Unable to retrieve version:", err);
+  //   return "unknown";
+  // }
 }

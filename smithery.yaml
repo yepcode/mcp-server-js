@@ -1,13 +1,3 @@
-startCommand:
-  type: stdio
-  configSchema:
-    type: object
-    properties:
-      yepcodeApiToken:
-        type: string
-        description: Your YepCode API token
-    required:
-      - yepcodeApiToken
-  commandFunction:
-    |-
-    (config) => ({ command: 'node', args: ['./dist/index.js'], env: { YEPCODE_API_TOKEN: config.yepcodeApiToken } })
+# Smithery configuration file: https://smithery.ai/docs/deployments
+
+runtime: typescript

@@ -19,3 +19,5 @@ Thumbs.db
 
 # Environment variables
 .env
+
+.smithery

@@ -1,49 +1,81 @@
 #!/usr/bin/env node
-
-import Logger from "./logger.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import YepCodeMcpServer from "./server.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { getVersion } from "./utils.js";
+import { registerEnvVarsTools } from "./tools/env-vars.js";
+import {
+  YepCodeApi,
+  YepCodeApiConfig,
+  YepCodeEnv,
+  YepCodeRun,
+} from "@yepcode/run";
+import { registerRunCodeTools } from "./tools/run-code.js";
+import { registerProcessesTools } from "./tools/processes.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-const logger = new Logger("StdioServer", { logsToStderr: true });
+let disableRunCodeTool = false;
+let skipRunCodeCleanup = false;
+if (process.env.YEPCODE_MCP_OPTIONS) {
+  const mcpOptions = process.env.YEPCODE_MCP_OPTIONS.split(",");
+  disableRunCodeTool = mcpOptions.includes("disableRunCodeTool");
+  skipRunCodeCleanup = mcpOptions.includes("skipRunCodeCleanup");
+}
 
-const main = async (): Promise<void> => {
-  let disableRunCodeTool = false;
-  let skipRunCodeCleanup = false;
-  if (process.env.YEPCODE_MCP_OPTIONS) {
-    const mcpOptions = process.env.YEPCODE_MCP_OPTIONS.split(",");
-    disableRunCodeTool = mcpOptions.includes("disableRunCodeTool");
-    skipRunCodeCleanup = mcpOptions.includes("skipRunCodeCleanup");
-  }
-  const server = new YepCodeMcpServer(
-    {},
-    { logsToStderr: true, disableRunCodeTool, skipRunCodeCleanup }
-  );
-  try {
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    logger.info(`@yepcode/mcp-server v${getVersion()} successfully started`);
-
-    // Handle process termination
-    process.on("SIGINT", async () => {
-      logger.info("Received SIGINT, shutting down");
-      await server.close();
-      process.exit(0);
-    });
-
-    process.on("SIGTERM", async () => {
-      logger.info("Received SIGTERM, shutting down");
-      await server.close();
-      process.exit(0);
-    });
-  } catch (error) {
-    logger.error("Failed to start server:", error as Error);
-    process.exit(1);
-  }
-};
-
-main().catch((error) => {
-  logger.error("Error running server", error);
+export const configSchema = z.object({
+  yepcodeApiToken: z.string().optional(),
 });
 
-export default main;
+export default function createStatelessServer({
+  config,
+}: {
+  config: z.infer<typeof configSchema>;
+}) {
+  try {
+    const server = new McpServer({
+      name: "YepCode MCP Server",
+      version: getVersion(),
+    });
+
+    let yepCodeEnv;
+    let yepCodeRun;
+    let yepCodeApi;
+    if (config.yepcodeApiToken) {
+      const yepCodeApiConfig: YepCodeApiConfig = {
+        apiToken: config.yepcodeApiToken,
+      };
+      yepCodeEnv = new YepCodeEnv(yepCodeApiConfig);
+      yepCodeRun = new YepCodeRun(yepCodeApiConfig);
+      yepCodeApi = new YepCodeApi(yepCodeApiConfig);
+    } else {
+      console.log("Running without YepCode API token");
+      yepCodeEnv = {} as YepCodeEnv;
+      yepCodeRun = {} as YepCodeRun;
+      yepCodeApi = {
+        getProcesses: async () => ({
+          data: [],
+          hasNextPage: false,
+        }),
+      } as unknown as YepCodeApi;
+    }
+
+    registerRunCodeTools(server, yepCodeRun);
+    registerEnvVarsTools(server, yepCodeEnv);
+    registerProcessesTools(server, yepCodeApi);
+
+    return server.server;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+if (process.env.STANDALONE !== "false") {
+  console.log("Running in standalone mode");
+  const transport = new StdioServerTransport();
+  const server = createStatelessServer({
+    config: {
+      yepcodeApiToken: process.env.YEPCODE_API_TOKEN || "",
+    },
+  });
+  server.connect(transport).catch(console.error);
+}
