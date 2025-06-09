@@ -12,7 +12,6 @@ import {
   YepCodeEnv,
   Log,
   YepCodeApi,
-  YepCodeApiManager,
   YepCodeRun,
   Execution,
   YepCodeApiConfig,
@@ -30,7 +29,13 @@ import {
   GetExecutionSchema,
 } from "./types.js";
 import { z } from "zod";
-import { getVersion, isEmpty } from "./utils.js";
+import {
+  getVersion,
+  isEmpty,
+  YepCodeApiFactory,
+  YepCodeEnvFactory,
+  YepCodeRunFactory,
+} from "./utils.js";
 import Logger from "./logger.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
@@ -77,9 +82,9 @@ class YepCodeMcpServer extends Server {
     this.setupErrorHandling();
 
     try {
-      this.yepCodeRun = new YepCodeRun(config);
-      this.yepCodeEnv = new YepCodeEnv(config);
-      this.yepCodeApi = YepCodeApiManager.getInstance(config);
+      this.yepCodeRun = YepCodeRunFactory.create(config);
+      this.yepCodeEnv = YepCodeEnvFactory.create(config);
+      this.yepCodeApi = YepCodeApiFactory.create(config);
       this.logger = new Logger(this.yepCodeApi.getTeamId(), {
         logsToStderr,
       });
