@@ -22,7 +22,11 @@ if (process.env.YEPCODE_MCP_OPTIONS) {
 }
 
 export const configSchema = z.object({
-  yepcodeApiToken: z.string(),
+  yepcodeApiToken: z
+    .string()
+    .describe(
+      "YepCode API token, obtained from https://cloud.yepcode.io/<your-team>/settings/api-credentials"
+    ),
 });
 
 export default function createStatelessServer({
