@@ -5,7 +5,7 @@ import { RunCodeOptionsSchema } from "../types.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 const buildRunCodeSchema = (envVars: string[]) => {
-  return z.object({
+  return {
     code: z.string().describe(`
   * We support JavaScript (NodeJS v20) or Python (v3.12).
   ${
@@ -48,13 +48,15 @@ const buildRunCodeSchema = (envVars: string[]) => {
   \`\`\`
   `),
     options: RunCodeOptionsSchema,
-  });
+  };
 };
 
-export const registerRunCodeTools = (
+export const registerRunCodeTools = async (
   server: McpServer,
-  yepCodeRun: YepCodeRun
+  yepCodeRun: YepCodeRun,
+  yepCodeEnv: YepCodeEnv
 ) => {
+  const envVars = await yepCodeEnv.getEnvVars();
   server.tool(
     "run_code",
     `Execute LLM-generated code safely in YepCode's secure, production-grade sandboxes.
@@ -67,7 +69,7 @@ export const registerRunCodeTools = (
     	•	One-off utility scripts
 
     Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here!`,
-    zodToJsonSchema(buildRunCodeSchema([])),
+    buildRunCodeSchema(envVars.map((envVar) => envVar.key)),
     async ({ code, options }) => {
       try {
         const logs: Log[] = [];

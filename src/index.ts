@@ -47,8 +47,9 @@ export default function createStatelessServer({
       yepCodeRun = new YepCodeRun(yepCodeApiConfig);
       yepCodeApi = new YepCodeApi(yepCodeApiConfig);
     } else {
-      console.log("Running without YepCode API token");
-      yepCodeEnv = {} as YepCodeEnv;
+      yepCodeEnv = {
+        getEnvVars: async () => [],
+      } as unknown as YepCodeEnv;
       yepCodeRun = {} as YepCodeRun;
       yepCodeApi = {
         getProcesses: async () => ({
@@ -58,7 +59,7 @@ export default function createStatelessServer({
       } as unknown as YepCodeApi;
     }
 
-    registerRunCodeTools(server, yepCodeRun);
+    registerRunCodeTools(server, yepCodeRun, yepCodeEnv);
     registerEnvVarsTools(server, yepCodeEnv);
     registerProcessesTools(server, yepCodeApi);
 
@@ -70,7 +71,6 @@ export default function createStatelessServer({
 }
 
 if (process.env.STANDALONE !== "false") {
-  console.log("Running in standalone mode");
   const transport = new StdioServerTransport();
   const server = createStatelessServer({
     config: {
