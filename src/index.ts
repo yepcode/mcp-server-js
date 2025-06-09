@@ -11,7 +11,6 @@ import {
 } from "@yepcode/run";
 import { registerRunCodeTools } from "./tools/run-code.js";
 import { registerProcessesTools } from "./tools/processes.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
 let disableRunCodeTool = false;
 let skipRunCodeCleanup = false;
@@ -39,14 +38,14 @@ export default function createStatelessServer({
     let yepCodeEnv;
     let yepCodeRun;
     let yepCodeApi;
-    if (config.yepcodeApiToken) {
+    try {
       const yepCodeApiConfig: YepCodeApiConfig = {
         apiToken: config.yepcodeApiToken,
       };
       yepCodeEnv = new YepCodeEnv(yepCodeApiConfig);
       yepCodeRun = new YepCodeRun(yepCodeApiConfig);
       yepCodeApi = new YepCodeApi(yepCodeApiConfig);
-    } else {
+    } catch (error) {
       yepCodeEnv = {
         getEnvVars: async () => [],
       } as unknown as YepCodeEnv;
