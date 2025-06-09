@@ -22,7 +22,7 @@ if (process.env.YEPCODE_MCP_OPTIONS) {
 }
 
 export const configSchema = z.object({
-  yepcodeApiToken: z.string().optional(),
+  yepcodeApiToken: z.string(),
 });
 
 export default function createStatelessServer({
