@@ -69,13 +69,3 @@ export default function createStatelessServer({
     throw error;
   }
 }
-
-if (process.env.STANDALONE !== "false") {
-  const transport = new StdioServerTransport();
-  const server = createStatelessServer({
-    config: {
-      yepcodeApiToken: process.env.YEPCODE_API_TOKEN || "",
-    },
-  });
-  server.connect(transport).catch(console.error);
-}

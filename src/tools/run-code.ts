@@ -1,8 +1,17 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Log, YepCodeEnv, YepCodeRun } from "@yepcode/run";
 import { z } from "zod";
-import { RunCodeOptionsSchema } from "../types.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
+
+const RunCodeOptionsSchema = z.object({
+  language: z
+    .string()
+    .optional()
+    .describe(
+      "The language to be used to run the code. We support javascript or python."
+    ),
+  comment: z.string().optional(),
+  settings: z.record(z.unknown()).optional(),
+});
 
 const buildRunCodeSchema = (envVars: string[]) => {
   return {

@@ -7,7 +7,7 @@ import { z } from "zod";
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
 
-export const RunProcessSchema = {
+export const RunProcessSchema = z.object({
   parameters: z.any().optional() as any,
   options: z
     .object({
@@ -32,7 +32,7 @@ export const RunProcessSchema = {
     .describe(
       "Whether the execution should be synchronous or not. If true, the execution will be synchronous and the execution result will be returned immediately. If false, the execution will be asynchronous and you should use the execution id to get the result later."
     ),
-};
+});
 
 async function registerProcessTool(
   server: McpServer,
@@ -44,11 +44,12 @@ async function registerProcessTool(
     toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
   }
 
-  const inputSchema = RunProcessSchema;
+  // const inputSchema = RunProcessSchema;
+  const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
   if (!isEmpty(process.parametersSchema)) {
-    inputSchema.parameters = process.parametersSchema as any;
+    inputSchema.properties.parameters = process.parametersSchema;
   } else {
-    delete inputSchema.parameters;
+    delete inputSchema.properties.parameters;
   }
 
   server.registerTool(
