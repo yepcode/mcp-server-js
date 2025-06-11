@@ -46,7 +46,7 @@
     "dev": "node --loader ts-node/esm src/index.ts",
     "build": "tsc && node -e \"require('fs').chmodSync('dist/index.js', '755')\"",
     "type-check": "tsc --noEmit",
-    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
+    "inspector": "npx @modelcontextprotocol/inspector node --env-file=.env dist/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
