@@ -158,7 +158,7 @@ Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` env
 {
   "mcpServers": {
     "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=disableRunCodeTool,skipRunCodeCleanup"
+      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=disableRunCodeTool,runCodeCleanup"
     }
   }
 }
@@ -171,7 +171,7 @@ Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` env
       "args": ["-y", "@yepcode/mcp-server"],
       "env": {
         "YEPCODE_API_TOKEN": "your_api_token_here",
-        "YEPCODE_MCP_OPTIONS": "disableRunCodeTool,skipRunCodeCleanup"
+        "YEPCODE_MCP_OPTIONS": "disableRunCodeTool,runCodeCleanup"
       }
     }
   }

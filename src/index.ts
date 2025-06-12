@@ -9,15 +9,15 @@ const logger = new Logger("StdioServer", { logsToStderr: true });
 
 const main = async (): Promise<void> => {
   let disableRunCodeTool = false;
-  let skipRunCodeCleanup = false;
+  let runCodeCleanup = false;
   if (process.env.YEPCODE_MCP_OPTIONS) {
     const mcpOptions = process.env.YEPCODE_MCP_OPTIONS.split(",");
     disableRunCodeTool = mcpOptions.includes("disableRunCodeTool");
-    skipRunCodeCleanup = mcpOptions.includes("skipRunCodeCleanup");
+    runCodeCleanup = mcpOptions.includes("runCodeCleanup");
   }
   const server = new YepCodeMcpServer(
     {},
-    { logsToStderr: true, disableRunCodeTool, skipRunCodeCleanup }
+    { logsToStderr: true, disableRunCodeTool, runCodeCleanup }
   );
   try {
     const transport = new StdioServerTransport();
