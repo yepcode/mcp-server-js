@@ -12,7 +12,6 @@ import {
   YepCodeEnv,
   Log,
   YepCodeApi,
-  YepCodeApiManager,
   YepCodeRun,
   Execution,
   YepCodeApiConfig,
@@ -79,7 +78,7 @@ class YepCodeMcpServer extends Server {
     try {
       this.yepCodeRun = new YepCodeRun(config);
       this.yepCodeEnv = new YepCodeEnv(config);
-      this.yepCodeApi = YepCodeApiManager.getInstance(config);
+      this.yepCodeApi = new YepCodeApi(config);
       this.logger = new Logger(this.yepCodeApi.getTeamId(), {
         logsToStderr,
       });
