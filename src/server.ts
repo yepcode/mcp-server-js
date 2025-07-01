@@ -99,12 +99,6 @@ class YepCodeMcpServer extends Server {
     this.onerror = (error) => {
       this.logger.error("[MCP Error]", error);
     };
-
-    process.on("SIGINT", async () => {
-      this.logger.info("Received SIGINT, shutting down");
-      await this.close();
-      process.exit(0);
-    });
   }
 
   private setupHandlers(): void {
