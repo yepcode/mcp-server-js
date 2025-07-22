@@ -31,6 +31,13 @@ import {
 import { z } from "zod";
 import { getVersion, isEmpty } from "./utils.js";
 import Logger from "./logger.js";
+import {
+  DeleteObjectSchema,
+  DownloadObjectSchema,
+  ListObjectsSchema,
+  storageToolDefinitions,
+  UploadObjectSchema,
+} from "./tools/storage-tool-definitions.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
@@ -237,6 +244,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
                 "Get the status, result, logs, timeline, etc. of a YepCode execution",
               inputSchema: zodToJsonSchema(GetExecutionSchema),
             },
+            ...storageToolDefinitions,
           ];
       let page = 0;
       let limit = 100;
@@ -403,6 +411,71 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             request,
             async (data) => {
               return await this.executionResult(data.executionId);
+            }
+          );
+
+        case "list_objects":
+          return this.handleToolRequest(
+            ListObjectsSchema,
+            request,
+            async (data) => {
+              const objects = await this.yepCodeApi.getObjects();
+              return objects;
+            }
+          );
+        case "upload_object":
+          return this.handleToolRequest(
+            UploadObjectSchema,
+            request,
+            async (data) => {
+              const { filename, content } = data;
+              
+              let fileContent: string | Buffer;
+              
+              if (typeof content === 'string') {
+                fileContent = content;
+              } else if (content.encoding === 'base64') {
+                fileContent = Buffer.from(content.data, 'base64');
+              } else {
+                throw new Error('Invalid content format');
+              }
+              
+              await this.yepCodeApi.createObject({
+                name: filename,
+                file: new Blob([fileContent]),
+              });
+              return { result: `Object ${filename} uploaded successfully` };
+            }
+          );
+        case "download_object":
+          return this.handleToolRequest(
+            DownloadObjectSchema,
+            request,
+            async (data) => {
+              const { filename } = data;
+              const stream = await this.yepCodeApi.getObject(filename);
+              
+              const chunks: Buffer[] = [];
+              for await (const chunk of stream) {
+                chunks.push(Buffer.from(chunk));
+              }
+              const buffer = Buffer.concat(chunks);
+              
+              return {
+                content: buffer.toString('base64'),
+                filename,
+                size: buffer.length
+              };
+            }
+          );
+        case "delete_object":
+          return this.handleToolRequest(
+            DeleteObjectSchema,
+            request,
+            async (data) => {
+              const { filename } = data;
+              await this.yepCodeApi.deleteObject(filename);
+              return { result: `Object ${filename} deleted successfully` };
             }
           );
         default:
