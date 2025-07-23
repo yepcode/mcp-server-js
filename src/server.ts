@@ -36,6 +36,7 @@ import {
   DownloadObjectSchema,
   ListObjectsSchema,
   storageToolDefinitions,
+  storageToolNames,
   UploadObjectSchema,
 } from "./tools/storage-tool-definitions.js";
 
@@ -414,7 +415,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             }
           );
 
-        case "list_objects":
+        case storageToolNames.list:
           return this.handleToolRequest(
             ListObjectsSchema,
             request,
@@ -423,7 +424,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
               return objects;
             }
           );
-        case "upload_object":
+        case storageToolNames.upload:
           return this.handleToolRequest(
             UploadObjectSchema,
             request,
@@ -447,7 +448,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
               return { result: `Object ${filename} uploaded successfully` };
             }
           );
-        case "download_object":
+        case storageToolNames.download:
           return this.handleToolRequest(
             DownloadObjectSchema,
             request,
@@ -468,7 +469,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
               };
             }
           );
-        case "delete_object":
+        case storageToolNames.delete:
           return this.handleToolRequest(
             DeleteObjectSchema,
             request,
