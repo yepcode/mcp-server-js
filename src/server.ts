@@ -209,44 +209,46 @@ class YepCodeMcpServer extends Server {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
       const envVars = await this.yepCodeEnv.getEnvVars();
-      const tools = this.disableRunCodeTool
-        ? []
-        : [
-            {
-              name: "run_code",
-              description: `Execute LLM-generated code safely in YepCode’s secure, production-grade sandboxes.
+      const tools = [
+        {
+          name: "set_env_var",
+          description:
+            "Set a YepCode environment variable to be available for future code executions",
+          inputSchema: zodToJsonSchema(SetEnvVarSchema),
+        },
+        {
+          name: "remove_env_var",
+          description: "Remove a YepCode environment variable",
+          inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
+        },
+        {
+          name: "get_execution",
+          description:
+            "Get the status, result, logs, timeline, etc. of a YepCode execution",
+          inputSchema: zodToJsonSchema(GetExecutionSchema),
+        },
+        ...storageToolDefinitions,
+      ];
+
+      if (!this.disableRunCodeTool) {
+        tools.push({
+          name: "run_code",
+          description: `Execute LLM-generated code safely in YepCode’s secure, production-grade sandboxes.
 This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
 
 It supports external dependencies (NPM or PyPI), so it’s perfect for:
-	•	Complex data transformations
-	•	API calls to services not yet integrated
-	•	Custom logic implementations
-	•	One-off utility scripts
+•	Complex data transformations
+•	API calls to services not yet integrated
+•	Custom logic implementations
+•	One-off utility scripts
 
 Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here!`,
-              inputSchema: zodToJsonSchema(
-                buildRunCodeSchema(envVars.map((envVar) => envVar.key))
-              ),
-            },
-            {
-              name: "set_env_var",
-              description:
-                "Set a YepCode environment variable to be available for future code executions",
-              inputSchema: zodToJsonSchema(SetEnvVarSchema),
-            },
-            {
-              name: "remove_env_var",
-              description: "Remove a YepCode environment variable",
-              inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
-            },
-            {
-              name: "get_execution",
-              description:
-                "Get the status, result, logs, timeline, etc. of a YepCode execution",
-              inputSchema: zodToJsonSchema(GetExecutionSchema),
-            },
-            ...storageToolDefinitions,
-          ];
+          inputSchema: zodToJsonSchema(
+            buildRunCodeSchema(envVars.map((envVar) => envVar.key))
+          ),
+        });
+      }
+
       let page = 0;
       let limit = 100;
       while (true) {
@@ -430,17 +432,17 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             request,
             async (data) => {
               const { filename, content } = data;
-              
+
               let fileContent: string | Buffer;
-              
-              if (typeof content === 'string') {
+
+              if (typeof content === "string") {
                 fileContent = content;
-              } else if (content.encoding === 'base64') {
-                fileContent = Buffer.from(content.data, 'base64');
+              } else if (content.encoding === "base64") {
+                fileContent = Buffer.from(content.data, "base64");
               } else {
-                throw new Error('Invalid content format');
+                throw new Error("Invalid content format");
               }
-              
+
               await this.yepCodeApi.createObject({
                 name: filename,
                 file: new Blob([fileContent]),
@@ -455,17 +457,17 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             async (data) => {
               const { filename } = data;
               const stream = await this.yepCodeApi.getObject(filename);
-              
+
               const chunks: Buffer[] = [];
               for await (const chunk of stream) {
                 chunks.push(Buffer.from(chunk));
               }
               const buffer = Buffer.concat(chunks);
-              
+
               return {
-                content: buffer.toString('base64'),
+                content: buffer.toString("base64"),
                 filename,
-                size: buffer.length
+                size: buffer.length,
               };
             }
           );
