@@ -241,6 +241,11 @@ It supports external dependencies (NPM or PyPI), so it’s perfect for:
 •	API calls to services not yet integrated
 •	Custom logic implementations
 •	One-off utility scripts
+•	Storage operations (list, upload, download, delete files) - available as global functions in both Node.js and Python (NO IMPORT NEEDED)
+
+Storage API available in code execution (no import required):
+- Node.js: yepcode.storage.list({ prefix }), yepcode.storage.upload(filename, content), yepcode.storage.download(filename), yepcode.storage.delete(filename)
+- Python: yepcode.storage.list(prefix=None), yepcode.storage.upload(filename, content), yepcode.storage.download(filename), yepcode.storage.delete(filename)
 
 Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here!`,
           inputSchema: zodToJsonSchema(
