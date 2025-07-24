@@ -422,7 +422,9 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             ListObjectsSchema,
             request,
             async (data) => {
-              const objects = await this.yepCodeApi.getObjects();
+              const objects = await this.yepCodeApi.getObjects({
+                prefix: data?.prefix || undefined,
+              });
               return objects;
             }
           );
