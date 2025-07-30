@@ -1,0 +1,9 @@
+{
+  "first-line-h1": false,
+  "line-length": false,
+  "no-duplicate-heading": {
+    "siblings_only": true
+  },
+  "no-inline-html": false,
+  "ol-prefix": false
+}
