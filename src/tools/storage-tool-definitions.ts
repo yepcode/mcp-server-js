@@ -57,22 +57,28 @@ export const DeleteObjectSchema = z.object({
 export const storageToolDefinitions = [
   {
     name: storageToolNames.list,
-    description: "List all files in storage",
+    title: "List all files in YepCode Storage",
+    description:
+      "List all files that user has previously uploaded to YepCode Storage",
     inputSchema: zodToJsonSchema(ListObjectsSchema),
   },
   {
     name: storageToolNames.upload,
-    description: "Upload a file to storage",
+    title: "Upload a file to YepCode Storage",
+    description:
+      "Upload a file to YepCode Storage. Files can be then accessed in your code using the `yepcode.storage` helper methods.",
     inputSchema: zodToJsonSchema(UploadObjectSchema),
   },
   {
     name: storageToolNames.download,
-    description: "Download a file from storage",
+    title: "Download a file from YepCode Storage",
+    description: "Download a file from YepCode Storage.",
     inputSchema: zodToJsonSchema(DownloadObjectSchema),
   },
   {
     name: storageToolNames.delete,
-    description: "Delete a file from storage",
+    title: "Delete a file from YepCode Storage",
+    description: "Delete a file from YepCode Storage.",
     inputSchema: zodToJsonSchema(DeleteObjectSchema),
   },
 ];
