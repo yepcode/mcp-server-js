@@ -205,10 +205,30 @@ class YepCodeMcpServer extends Server {
     };
   }
 
+  private getCodingRules = async (): Promise<string> => {
+    try {
+      let rulesMdFile = await fetch(
+        "https://yepcode.io/docs/yepcode-coding-rules.md"
+      ).then((res) => res.text());
+      rulesMdFile = rulesMdFile.substring(
+        rulesMdFile.indexOf("## General Rules")
+      );
+      rulesMdFile = rulesMdFile.replace(
+        /(\[Section titled “.*”\]\(#.*\)\n)/g,
+        ""
+      );
+
+      return `Here you can find the general rules for YepCode coding:
+
+    ${rulesMdFile}`;
+    } catch (error) {
+      return "";
+    }
+  };
+
   private setupToolHandlers(): void {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
-      const envVars = await this.yepCodeEnv.getEnvVars();
       const tools = [
         {
           name: "set_env_var",
@@ -234,26 +254,28 @@ class YepCodeMcpServer extends Server {
       ];
 
       if (!this.disableRunCodeTool) {
+        const envVars = await this.yepCodeEnv.getEnvVars();
+        const codingRules = await this.getCodingRules();
         tools.push({
           name: "run_code",
           title:
             "Execute LLM-generated code in YepCode’s remote and secure sandboxes",
           description: `This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
 
-It supports external dependencies (NPM or PyPI), so it’s perfect for:
-•	Complex data transformations
-•	API calls to services not yet integrated
-•	Custom logic implementations
-•	One-off utility scripts
-•	Storage operations (list, upload, download, delete files) - available as global functions in both Node.js and Python (NO IMPORT NEEDED)
+It supports JavaScript and Python, both with external dependencies (NPM or PyPI), so it’s perfect for:
+* Complex data transformations
+* API calls to services not yet integrated
+* Custom logic implementations
+* One-off utility scripts
+* To use files as input, first upload them to YepCode Storage using the upload storage MCP tools. Then, access them in your code using the \`yepcode.storage\` helper methods to download the files.
+*	To generate and output files, create them in the local execution storage, then upload them to YepCode Storage using the \`yepcode.storage\` helpers. Once uploaded, you can download them using the download storage MCP tool.
 
-Storage API available in code execution (no import required):
-- Node.js: yepcode.storage.list({ prefix }), yepcode.storage.upload(filename, content), yepcode.storage.download(filename), yepcode.storage.delete(filename)
-- Python: yepcode.storage.list(prefix=None), yepcode.storage.upload(filename, content), yepcode.storage.download(filename), yepcode.storage.delete(filename)
-
-Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here!`,
+Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here.`,
           inputSchema: zodToJsonSchema(
-            buildRunCodeSchema(envVars.map((envVar) => envVar.key))
+            buildRunCodeSchema(
+              envVars.map((envVar) => envVar.key),
+              codingRules
+            )
           ),
         });
       }
