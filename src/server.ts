@@ -17,17 +17,7 @@ import {
   YepCodeApiConfig,
 } from "@yepcode/run";
 import dotenv from "dotenv";
-import {
-  RunCodeSchema,
-  buildRunCodeSchema,
-  SetEnvVarSchema,
-  RemoveEnvVarSchema,
-  ToolCallRequest,
-  ToolHandler,
-  RunProcessSchema,
-  ExecutionResultSchema,
-  GetExecutionSchema,
-} from "./types.js";
+import { ToolCallRequest, ToolHandler } from "./types.js";
 import { z } from "zod";
 import { getVersion, isEmpty } from "./utils.js";
 import Logger from "./logger.js";
@@ -39,6 +29,24 @@ import {
   storageToolNames,
   UploadObjectSchema,
 } from "./tools/storage-tool-definitions.js";
+import {
+  SetEnvVarSchema,
+  RemoveEnvVarSchema,
+  envVarsToolDefinitions,
+  envVarsToolNames,
+} from "./tools/env-vars-tool-definitions.js";
+import {
+  GetExecutionSchema,
+  getExecutionToolNames,
+  getExecutionToolDefinitions,
+} from "./tools/get-execution-tool-definition.js";
+import {
+  runCodeToolDefinitions,
+  RunCodeSchema,
+  ExecutionResultSchema,
+  RunProcessSchema,
+  runCodeToolNames,
+} from "./tools/run-code-tool-definitinos.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
@@ -205,79 +213,18 @@ class YepCodeMcpServer extends Server {
     };
   }
 
-  private getCodingRules = async (): Promise<string> => {
-    try {
-      let rulesMdFile = await fetch(
-        "https://yepcode.io/docs/yepcode-coding-rules.md"
-      ).then((res) => res.text());
-      rulesMdFile = rulesMdFile.substring(
-        rulesMdFile.indexOf("## General Rules")
-      );
-      rulesMdFile = rulesMdFile.replace(
-        /(\[Section titled “.*”\]\(#.*\)\n)/g,
-        ""
-      );
-
-      return `Here you can find the general rules for YepCode coding:
-
-    ${rulesMdFile}`;
-    } catch (error) {
-      return "";
-    }
-  };
-
   private setupToolHandlers(): void {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
       const tools = [
-        {
-          name: "set_env_var",
-          title: "Set environment variable",
-          description:
-            "Set a YepCode environment variable to be available for future code executions",
-          inputSchema: zodToJsonSchema(SetEnvVarSchema),
-        },
-        {
-          name: "remove_env_var",
-          title: "Remove environment variable",
-          description: "Remove a YepCode environment variable",
-          inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
-        },
-        {
-          name: "get_execution",
-          title: "Get process execution",
-          description:
-            "Get the status, result, logs, timeline, etc. of a YepCode execution",
-          inputSchema: zodToJsonSchema(GetExecutionSchema),
-        },
+        ...envVarsToolDefinitions,
         ...storageToolDefinitions,
+        ...getExecutionToolDefinitions,
       ];
 
       if (!this.disableRunCodeTool) {
         const envVars = await this.yepCodeEnv.getEnvVars();
-        const codingRules = await this.getCodingRules();
-        tools.push({
-          name: "run_code",
-          title:
-            "Execute LLM-generated code in YepCode’s remote and secure sandboxes",
-          description: `This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
-
-It supports JavaScript and Python, both with external dependencies (NPM or PyPI), so it’s perfect for:
-* Complex data transformations
-* API calls to services not yet integrated
-* Custom logic implementations
-* One-off utility scripts
-* To use files as input, first upload them to YepCode Storage using the upload storage MCP tools. Then, access them in your code using the \`yepcode.storage\` helper methods to download the files.
-*	To generate and output files, create them in the local execution storage, then upload them to YepCode Storage using the \`yepcode.storage\` helpers. Once uploaded, you can download them using the download storage MCP tool.
-
-Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here.`,
-          inputSchema: zodToJsonSchema(
-            buildRunCodeSchema(
-              envVars.map((envVar) => envVar.key),
-              codingRules
-            )
-          ),
-        });
+        tools.push(...(await runCodeToolDefinitions(envVars)));
       }
 
       let page = 0;
@@ -364,7 +311,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
       }
 
       switch (request.params.name) {
-        case "run_code":
+        case runCodeToolNames.runCode:
           if (this.disableRunCodeTool) {
             this.logger.error("Run code tool is disabled");
             throw new McpError(
@@ -415,7 +362,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             }
           );
 
-        case "set_env_var":
+        case envVarsToolNames.set:
           return this.handleToolRequest(
             SetEnvVarSchema,
             request,
@@ -429,7 +376,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             }
           );
 
-        case "remove_env_var":
+        case envVarsToolNames.remove:
           return this.handleToolRequest(
             RemoveEnvVarSchema,
             request,
@@ -440,7 +387,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
             }
           );
 
-        case "get_execution":
+        case getExecutionToolNames.getExecution:
           return this.handleToolRequest(
             GetExecutionSchema,
             request,
