@@ -212,17 +212,20 @@ class YepCodeMcpServer extends Server {
       const tools = [
         {
           name: "set_env_var",
+          title: "Set environment variable",
           description:
             "Set a YepCode environment variable to be available for future code executions",
           inputSchema: zodToJsonSchema(SetEnvVarSchema),
         },
         {
           name: "remove_env_var",
+          title: "Remove environment variable",
           description: "Remove a YepCode environment variable",
           inputSchema: zodToJsonSchema(RemoveEnvVarSchema),
         },
         {
           name: "get_execution",
+          title: "Get process execution",
           description:
             "Get the status, result, logs, timeline, etc. of a YepCode execution",
           inputSchema: zodToJsonSchema(GetExecutionSchema),
@@ -233,8 +236,9 @@ class YepCodeMcpServer extends Server {
       if (!this.disableRunCodeTool) {
         tools.push({
           name: "run_code",
-          description: `Execute LLM-generated code safely in YepCode’s secure, production-grade sandboxes.
-This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
+          title:
+            "Execute LLM-generated code in YepCode’s remote and secure sandboxes",
+          description: `This tool is ideal when your AI agent needs to handle tasks that don’t have a predefined tool available — but could be solved by writing and running a custom script.
 
 It supports external dependencies (NPM or PyPI), so it’s perfect for:
 •	Complex data transformations
@@ -278,6 +282,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
               }
               return {
                 name: toolName,
+                title: process.name,
                 description: `${process.name}${
                   process.description ? ` - ${process.description}` : ""
                 }`,
