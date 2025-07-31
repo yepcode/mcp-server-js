@@ -500,6 +500,7 @@ Tip: First try to find a tool that matches your task, but if not available, try 
 
               return {
                 content: buffer.toString("base64"),
+                encoding: "base64",
                 filename,
                 size: buffer.length,
               };
