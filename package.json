@@ -46,11 +46,11 @@
     "dev": "node --loader ts-node/esm src/index.ts",
     "build": "tsc && node -e \"require('fs').chmodSync('dist/index.js', '755')\"",
     "type-check": "tsc --noEmit",
-    "inspector": "npx @modelcontextprotocol/inspector node --env-file=.env dist/index.js"
+    "inspector": "npx @modelcontextprotocol/inspector@0.13.0 node --env-file=.env dist/index.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "@yepcode/run": "^1.7.0",
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "@yepcode/run": "^1.8.0",
     "dotenv": "^16.4.7",
     "zod": "^3.24.2"
   },
