@@ -204,6 +204,86 @@ Removes an environment variable from the YepCode workspace.
 }
 ```
 
+### Storage Management
+
+YepCode provides a built-in storage system that allows you to upload, list, download, and delete files. These files can be accessed from your code executions using the `yepcode.storage` helper methods.
+
+#### list_files
+
+Lists all files in your YepCode storage.
+
+```typescript
+// Input
+{
+  prefix?: string;                       // Optional prefix to filter files
+}
+
+// Response
+{
+  files: Array<{
+    filename: string;                    // File name or path
+    size: number;                        // File size in bytes
+    lastModified: string;                // Last modification date
+  }>;
+}
+```
+
+#### upload_file
+
+Uploads a file to YepCode storage.
+
+```typescript
+// Input
+{
+  filename: string;                      // File path (e.g., 'file.txt' or 'folder/file.txt')
+  content: string | {                   // File content
+    data: string;                        // Base64 encoded content for binary files
+    encoding: "base64";
+  };
+}
+
+// Response
+{
+  success: boolean;                      // Upload success status
+  filename: string;                      // Uploaded file path
+}
+```
+
+#### download_file
+
+Downloads a file from YepCode storage.
+
+```typescript
+// Input
+{
+  filename: string;                      // File path to download
+}
+
+// Response
+{
+  filename: string;                      // File path
+  content: string;                       // File content (base64 for binary files)
+  encoding?: string;                     // Encoding type if binary
+}
+```
+
+#### delete_file
+
+Deletes a file from YepCode storage.
+
+```typescript
+// Input
+{
+  filename: string;                      // File path to delete
+}
+
+// Response
+{
+  success: boolean;                      // Deletion success status
+  filename: string;                      // Deleted file path
+}
+```
+
 ### Process Execution
 
 The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by just adding the `mcp-tool` tag to your process (see our docs to learn more about [process tags](https://yepcode.io/docs/processes/tags)).
