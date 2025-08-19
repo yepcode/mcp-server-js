@@ -1,4 +1,4 @@
-![YepCode MCP Server Preview](/readme-assets/cover.png)
+![YepCode MCP Server Preview](https://yepcode.io/images/cover/yepcode-ultimate-dev-tool-ai-solutions.png)
 
 <div align="center">
 
