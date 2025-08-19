@@ -5,6 +5,8 @@
 [![NPM version](https://img.shields.io/npm/v/@yepcode/mcp-server.svg)](https://npmjs.org/package/@yepcode/mcp-server)
 [![NPM Downloads](https://img.shields.io/npm/dm/@yepcode/mcp-server)](https://www.npmjs.com/package/@yepcode/mcp-server)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/yepcode/mcp-server-js/ci.yml)](https://github.com/yepcode/mcp-server-js/actions)
+
+[![Trust Score](https://archestra.ai/mcp-catalog/api/badge/quality/yepcode/mcp-server-js)](https://archestra.ai/mcp-catalog/yepcode__mcp-server-js)
 [![smithery badge](https://smithery.ai/badge/@yepcode/mcp-server)](https://smithery.ai/server/@yepcode/mcp-server)
 
 </div>
