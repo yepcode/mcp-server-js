@@ -13,7 +13,7 @@
 
 ## What is YepCode MCP Server?
 
-An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) server that enables AI platforms to interact with [YepCode](https://yepcode.io)'s infrastructure. Run LLM generated scripts and turn your YepCode processes into powerful tools that AI assistants can use directly.
+An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) server that enables AI platforms to interact with [YepCode](https://yepcode.io/l/LQUKe)'s infrastructure. Run LLM generated scripts and turn your YepCode processes into powerful tools that AI assistants can use directly.
 
 ### Why YepCode MCP Server?
 
@@ -28,7 +28,7 @@ YepCode MCP server can be integrated with AI platforms like [Cursor](https://cur
 
 For both approaches, you need to get your YepCode API credentials:
 
-1. Sign up to [YepCode Cloud](https://cloud.yepcode.io)
+1. Sign up to [YepCode Cloud](https://yepcode.io/l/LQUKe)
 2. Visit `Settings` > `API credentials` to create a new API token.
 
 ### Remote Approach using SSE Server
