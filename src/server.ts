@@ -50,6 +50,18 @@ import {
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
+const RUN_CODE_TOOL_TAG = "run_code";
+const EXECUTIONS_TOOL_TAG = "executions";
+const ENV_VARS_TOOL_TAG = "env_vars";
+const STORAGE_TOOL_TAG = "storage";
+
+const DEFAULT_TOOL_TAGS = [
+  RUN_CODE_TOOL_TAG,
+  EXECUTIONS_TOOL_TAG,
+  ENV_VARS_TOOL_TAG,
+  STORAGE_TOOL_TAG,
+  RUN_PROCESS_TOOL_TAG,
+];
 
 dotenv.config();
 
@@ -58,17 +70,17 @@ class YepCodeMcpServer extends Server {
   private yepCodeEnv: YepCodeEnv;
   private yepCodeApi: YepCodeApi;
   private logger: Logger;
-  private disableRunCodeTool: boolean;
+  private tools: string[];
   private runCodeCleanup: boolean;
   constructor(
     config: YepCodeApiConfig,
     {
       logsToStderr = false,
-      disableRunCodeTool = false,
+      tools = DEFAULT_TOOL_TAGS,
       runCodeCleanup = false,
     }: {
       logsToStderr?: boolean;
-      disableRunCodeTool?: boolean;
+      tools?: string[];
       runCodeCleanup?: boolean;
     } = {}
   ) {
@@ -86,7 +98,7 @@ class YepCodeMcpServer extends Server {
       }
     );
 
-    this.disableRunCodeTool = disableRunCodeTool;
+    this.tools = tools;
     this.runCodeCleanup = runCodeCleanup;
     this.setupHandlers();
     this.setupErrorHandling();
@@ -216,13 +228,17 @@ class YepCodeMcpServer extends Server {
   private setupToolHandlers(): void {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
-      const tools = [
-        ...envVarsToolDefinitions,
-        ...storageToolDefinitions,
-        ...getExecutionToolDefinitions,
-      ];
-
-      if (!this.disableRunCodeTool) {
+      const tools = [];
+      if (this.tools.includes(EXECUTIONS_TOOL_TAG)) {
+        tools.push(...getExecutionToolDefinitions);
+      }
+      if (this.tools.includes(STORAGE_TOOL_TAG)) {
+        tools.push(...storageToolDefinitions);
+      }
+      if (this.tools.includes(ENV_VARS_TOOL_TAG)) {
+        tools.push(...envVarsToolDefinitions);
+      }
+      if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();
         tools.push(...(await runCodeToolDefinitions(envVars)));
       }
@@ -230,34 +246,36 @@ class YepCodeMcpServer extends Server {
       let page = 0;
       let limit = 100;
       while (true) {
-        const processes = await this.yepCodeApi.getProcesses({ page, limit });
+        const processes = await this.yepCodeApi.getProcesses({
+          page,
+          limit,
+          tags: this.tools,
+        });
         this.logger.info(`Found ${processes?.data?.length} processes`);
         if (!processes.data) {
           break;
         }
         tools.push(
-          ...processes.data
-            .filter((process) => process.tags?.includes(RUN_PROCESS_TOOL_TAG))
-            .map((process) => {
-              const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
-              if (!isEmpty(process.parametersSchema)) {
-                inputSchema.properties.parameters = process.parametersSchema;
-              } else {
-                delete inputSchema.properties.parameters;
-              }
-              let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
-              if (toolName.length > 60) {
-                toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
-              }
-              return {
-                name: toolName,
-                title: process.name,
-                description: `${process.name}${
-                  process.description ? ` - ${process.description}` : ""
-                }`,
-                inputSchema,
-              };
-            })
+          ...processes.data.map((process) => {
+            const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
+            if (!isEmpty(process.parametersSchema)) {
+              inputSchema.properties.parameters = process.parametersSchema;
+            } else {
+              delete inputSchema.properties.parameters;
+            }
+            let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
+            if (toolName.length > 60) {
+              toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
+            }
+            return {
+              name: toolName,
+              title: process.name,
+              description: `${process.name}${
+                process.description ? ` - ${process.description}` : ""
+              }`,
+              inputSchema,
+            };
+          })
         );
         if (!processes.hasNextPage) {
           break;
@@ -312,7 +330,7 @@ class YepCodeMcpServer extends Server {
 
       switch (request.params.name) {
         case runCodeToolNames.runCode:
-          if (this.disableRunCodeTool) {
+          if (!this.tools.includes(RUN_CODE_TOOL_TAG)) {
             this.logger.error("Run code tool is disabled");
             throw new McpError(
               ErrorCode.MethodNotFound,

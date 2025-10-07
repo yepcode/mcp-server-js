@@ -150,22 +150,38 @@ Executes code in YepCode's secure environment.
 
 YepCode MCP server supports the following options:
 
-- Disable the run_code tool: In some cases, you may want to disable the `run_code` tool. For example, if you want to use the MCP server as a provider only for the existing tools in your YepCode account.
-- Skip the run_code cleanup: By default, run_code processes source code is removed after execution. If you want to keep it for audit purposes, you can use this option.
+- `runCodeCleanup`: Skip the run_code cleanup. By default, run_code processes source code is removed after execution. If you want to keep it for audit purposes, you can use this option.
 
-Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` environment variable or as a query parameter in the MCP server URL.
+Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` environment variable.
+
+##### Tool Selection
+
+You can control which tools are enabled by setting the `YEPCODE_MCP_TOOLS` environment variable with a comma-separated list of tool categories and process tags:
+
+**Built-in tool categories:**
+- `run_code`: Enables the code execution tool
+- `executions`: Enables execution management tools
+- `env_vars`: Enables environment variable management tools
+- `storage`: Enables storage management tools
+
+**Process tags:**
+- Any tag used in your YepCode processes (e.g., `mcp-tool`, `core`, `api`, `automation`, etc.)
+- When you specify a process tag, all processes with that tag will be exposed as individual MCP tools
+- Process tools will be named `run_ycp_<process_slug>` (or `run_ycp_<process_id>` if the name is longer than 60 characters)
+
+If not specified, all built-in tools are enabled by default, but no process tools will be exposed.
 
 ```typescript
-// SSE server configuration
+// SSE server configuration with options
 {
   "mcpServers": {
     "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=disableRunCodeTool,runCodeCleanup"
+      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=runCodeCleanup&tools=run_code,storage,env_vars,core,api"
     }
   }
 }
 
-// NPX configuration
+// NPX configuration with options
 {
   "mcpServers": {
     "yepcode-mcp-server": {
@@ -173,12 +189,18 @@ Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` env
       "args": ["-y", "@yepcode/mcp-server"],
       "env": {
         "YEPCODE_API_TOKEN": "your_api_token_here",
-        "YEPCODE_MCP_OPTIONS": "disableRunCodeTool,runCodeCleanup"
+        "YEPCODE_MCP_OPTIONS": "runCodeCleanup",
+        "YEPCODE_MCP_TOOLS": "run_code,storage,env_vars,core,api"
       }
     }
   }
 }
 ```
+
+**Example scenarios:**
+- `YEPCODE_MCP_TOOLS=run_code,storage` - Only enables built-in code execution and storage tools
+- `YEPCODE_MCP_TOOLS=core,automation` - Only exposes processes tagged with "core" or "automation" as tools
+- `YEPCODE_MCP_TOOLS=run_code,storage,core` - Enables built-in tools plus all processes tagged with "core"
 
 ### Environment Management
 
@@ -288,9 +310,16 @@ Deletes a file from YepCode storage.
 
 ### Process Execution
 
-The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by just adding the `mcp-tool` tag to your process (see our docs to learn more about [process tags](https://yepcode.io/docs/processes/tags)).
+The MCP server can expose your YepCode Processes as individual MCP tools, making them directly accessible to AI assistants. This feature is enabled by specifying process tags in the `YEPCODE_MCP_TOOLS` environment variable.
+
+**How it works:**
+1. Tag your YepCode processes with any tag (e.g., `core`, `api`, `automation`, `mcp-tool`, etc.)
+2. Add those tags to the `YEPCODE_MCP_TOOLS` environment variable
+3. All processes with the specified tags will be exposed as individual MCP tools
 
 There will be a tool for each exposed process: `run_ycp_<process_slug>` (or `run_ycp_<process_id>` if tool name is longer than 60 characters).
+
+For more information about process tags, see our [process tags documentation](https://yepcode.io/docs/processes/tags).
 
 #### run_ycp_<process_slug>
 

@@ -8,16 +8,19 @@ import { getVersion } from "./utils.js";
 const logger = new Logger("StdioServer", { logsToStderr: true });
 
 const main = async (): Promise<void> => {
-  let disableRunCodeTool = false;
+  let tools: string[] | undefined;
   let runCodeCleanup = false;
   if (process.env.YEPCODE_MCP_OPTIONS) {
     const mcpOptions = process.env.YEPCODE_MCP_OPTIONS.split(",");
-    disableRunCodeTool = mcpOptions.includes("disableRunCodeTool");
     runCodeCleanup = mcpOptions.includes("runCodeCleanup");
   }
+  if (process.env.YEPCODE_MCP_TOOLS) {
+    tools = process.env.YEPCODE_MCP_TOOLS.split(",").map((tool) => tool.trim());
+  }
+
   const server = new YepCodeMcpServer(
     {},
-    { logsToStderr: true, disableRunCodeTool, runCodeCleanup }
+    { logsToStderr: true, tools, runCodeCleanup }
   );
   try {
     const transport = new StdioServerTransport();
