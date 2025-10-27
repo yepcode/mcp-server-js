@@ -92,7 +92,7 @@ import {
   modulesToolNames,
 } from "./tools/modules-tool-definitions.js";
 
-const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
+const RUN_PROCESS_TOOL_NAME_PREFIX = "yc_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
 const RUN_CODE_TOOL_TAG = "run_code";
 const EXECUTIONS_TOOL_TAG = "executions";
@@ -306,7 +306,7 @@ class YepCodeMcpServer extends Server {
             } else {
               delete inputSchema.properties.parameters;
             }
-            let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
+            let toolName = process.slug;
             if (toolName.length > 60) {
               toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
             }
