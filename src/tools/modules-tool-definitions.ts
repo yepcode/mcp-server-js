@@ -1,0 +1,255 @@
+import { z } from "zod";
+
+// Schema for getting modules with pagination
+export const GetModulesSchema = z.object({
+  page: z.number().int().min(0).default(0).optional().describe("Page number for pagination (0-based index)"),
+  limit: z.number().int().min(1).max(100).default(10).optional().describe("Maximum number of modules to retrieve per page"),
+});
+
+// Schema for creating a module
+export const CreateModuleSchema = z.object({
+  name: z.string().describe("Module name"),
+  description: z.string().optional().describe("Module description"),
+  code: z.string().describe("Module source code"),
+  language: z.enum(["javascript", "python"]).describe("Programming language"),
+  tags: z.array(z.string()).optional().describe("Module tags"),
+  settings: z.record(z.any()).optional().describe("Module settings"),
+});
+
+// Schema for getting a specific module
+export const GetModuleSchema = z.object({
+  id: z.string().describe("Unique identifier (UUID) of the script library module to retrieve"),
+});
+
+// Schema for deleting a module
+export const DeleteModuleSchema = z.object({
+  id: z.string().describe("Unique identifier (UUID) of the script library module to delete"),
+});
+
+// Schema for getting module versions
+export const GetModuleVersionsSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  page: z.number().int().min(0).default(0).optional().describe("Page number"),
+  limit: z.number().int().min(1).max(100).default(10).optional().describe("Amount of items to retrieve"),
+});
+
+// Schema for getting a specific module version
+export const GetModuleVersionSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  versionId: z.string().describe("Version ID"),
+});
+
+// Schema for deleting a module version
+export const DeleteModuleVersionSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  versionId: z.string().describe("Version ID"),
+});
+
+// Schema for getting module aliases
+export const GetModuleAliasesSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  versionId: z.string().optional().describe("Version ID"),
+  page: z.number().int().min(0).default(0).optional().describe("Page number"),
+  limit: z.number().int().min(1).max(100).default(10).optional().describe("Amount of items to retrieve"),
+});
+
+// Tool names
+export const modulesToolNames = {
+  getModules: "get_modules",
+  createModule: "create_module",
+  getModule: "get_module",
+  deleteModule: "delete_module",
+  getModuleVersions: "get_module_versions",
+  getModuleVersion: "get_module_version",
+  deleteModuleVersion: "delete_module_version",
+  getModuleAliases: "get_module_aliases",
+} as const;
+
+// Tool definitions
+export const modulesToolDefinitions = [
+  {
+    name: modulesToolNames.getModules,
+    title: "Get Modules",
+    description: "Retrieves a paginated list of script library modules. Modules are reusable code libraries that can be imported and used across different processes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        page: {
+          type: "integer",
+          format: "int32",
+          default: 0,
+          description: "Page number for pagination (0-based index)",
+        },
+        limit: {
+          type: "integer",
+          format: "int32",
+          default: 10,
+          description: "Maximum number of modules to retrieve per page",
+        },
+      },
+    },
+  },
+  {
+    name: modulesToolNames.createModule,
+    title: "Create Module",
+    description: "Creates a new script library module with source code and metadata. Modules can be written in JavaScript or Python and can be imported by processes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "Module name",
+        },
+        description: {
+          type: "string",
+          description: "Module description",
+        },
+        code: {
+          type: "string",
+          description: "Module source code",
+        },
+        language: {
+          type: "string",
+          enum: ["javascript", "python"],
+          description: "Programming language",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Module tags",
+        },
+        settings: {
+          type: "object",
+          description: "Module settings",
+        },
+      },
+      required: ["name", "code", "language"],
+    },
+  },
+  {
+    name: modulesToolNames.getModule,
+    title: "Get Module",
+    description: "Retrieves detailed information about a specific script library module including its source code, metadata, and version information.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "Unique identifier (UUID) of the script library module to retrieve",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: modulesToolNames.deleteModule,
+    title: "Delete Module",
+    description: "Deletes a script library module and all its versions. This action cannot be undone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description: "Unique identifier (UUID) of the script library module to delete",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: modulesToolNames.getModuleVersions,
+    title: "Get Module Versions",
+    description: "Retrieves a paginated list of versions for a specific module.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        page: {
+          type: "integer",
+          format: "int32",
+          default: 0,
+          description: "Page number",
+        },
+        limit: {
+          type: "integer",
+          format: "int32",
+          default: 10,
+          description: "Amount of items to retrieve",
+        },
+      },
+      required: ["moduleId"],
+    },
+  },
+  {
+    name: modulesToolNames.getModuleVersion,
+    title: "Get Module Version",
+    description: "Retrieves detailed information about a specific module version.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        versionId: {
+          type: "string",
+          description: "Version ID",
+        },
+      },
+      required: ["moduleId", "versionId"],
+    },
+  },
+  {
+    name: modulesToolNames.deleteModuleVersion,
+    title: "Delete Module Version",
+    description: "Deletes a specific module version. This action cannot be undone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        versionId: {
+          type: "string",
+          description: "Version ID",
+        },
+      },
+      required: ["moduleId", "versionId"],
+    },
+  },
+  {
+    name: modulesToolNames.getModuleAliases,
+    title: "Get Module Aliases",
+    description: "Retrieves a paginated list of version aliases for a specific module.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        versionId: {
+          type: "string",
+          description: "Version ID",
+        },
+        page: {
+          type: "integer",
+          format: "int32",
+          default: 0,
+          description: "Page number",
+        },
+        limit: {
+          type: "integer",
+          format: "int32",
+          default: 10,
+          description: "Amount of items to retrieve",
+        },
+      },
+      required: ["moduleId"],
+    },
+  },
+];
