@@ -38,11 +38,6 @@ import {
   variablesToolNames,
 } from "./tools/variables-tool-definitions.js";
 import {
-  GetExecutionSchema as GetExecutionResultSchema,
-  getExecutionToolNames,
-  getExecutionToolDefinitions,
-} from "./tools/get-execution-tool-definition.js";
-import {
   runCodeToolDefinitions,
   RunCodeSchema,
   ExecutionResultSchema,
@@ -95,14 +90,9 @@ import {
 const RUN_PROCESS_TOOL_NAME_PREFIX = "yc_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
 const RUN_CODE_TOOL_TAG = "run_code";
-const EXECUTIONS_TOOL_TAG = "executions";
-const API_TOOL_TAG = "api";
+const API_TOOL_TAG = "yc_api";
 
-const DEFAULT_TOOL_TAGS = [
-  RUN_CODE_TOOL_TAG,
-  EXECUTIONS_TOOL_TAG,
-  RUN_PROCESS_TOOL_TAG,
-];
+const DEFAULT_TOOL_TAGS = [RUN_CODE_TOOL_TAG, RUN_PROCESS_TOOL_TAG];
 
 dotenv.config();
 
@@ -270,9 +260,6 @@ class YepCodeMcpServer extends Server {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
       const tools = [];
-      if (this.tools.includes(EXECUTIONS_TOOL_TAG)) {
-        tools.push(...getExecutionToolDefinitions);
-      }
       if (this.tools.includes(API_TOOL_TAG)) {
         tools.push(...storageToolDefinitions);
         tools.push(...variablesToolDefinitions);
@@ -477,15 +464,6 @@ class YepCodeMcpServer extends Server {
             async (data) => {
               await this.yepCodeApi.deleteVariable(data.id);
               return { result: `Variable ${data.id} deleted successfully` };
-            }
-          );
-
-        case getExecutionToolNames.getExecution:
-          return this.handleToolRequest(
-            GetExecutionResultSchema,
-            request,
-            async (data) => {
-              return await this.executionResult(data.executionId);
             }
           );
 
