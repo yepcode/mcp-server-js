@@ -160,14 +160,12 @@ You can control which tools are enabled by setting the `YEPCODE_MCP_TOOLS` envir
 
 **Built-in tool categories:**
 - `run_code`: Enables the code execution tool
-- `executions`: Enables execution management tools
-- `env_vars`: Enables environment variable management tools
-- `storage`: Enables storage management tools
+- `yc_api`: Enables all API management tools (processes, schedules, variables, storage, executions, modules)
 
 **Process tags:**
-- Any tag used in your YepCode processes (e.g., `mcp-tool`, `core`, `api`, `automation`, etc.)
+- Any tag used in your YepCode processes (e.g., `mcp-tool`, `core`, `automation`, etc.)
 - When you specify a process tag, all processes with that tag will be exposed as individual MCP tools
-- Process tools will be named `run_ycp_<process_slug>` (or `run_ycp_<process_id>` if the name is longer than 60 characters)
+- Process tools will be named using the process slug (or prefixed with `yc_` and the process ID if the name is longer than 60 characters)
 
 If not specified, all built-in tools are enabled by default, but no process tools will be exposed.
 
@@ -176,7 +174,7 @@ If not specified, all built-in tools are enabled by default, but no process tool
 {
   "mcpServers": {
     "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=runCodeCleanup&tools=run_code,storage,env_vars,core,api"
+      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=runCodeCleanup&tools=run_code,yc_api,mcp-tool,core"
     }
   }
 }
@@ -190,7 +188,7 @@ If not specified, all built-in tools are enabled by default, but no process tool
       "env": {
         "YEPCODE_API_TOKEN": "your_api_token_here",
         "YEPCODE_MCP_OPTIONS": "runCodeCleanup",
-        "YEPCODE_MCP_TOOLS": "run_code,storage,env_vars,core,api"
+        "YEPCODE_MCP_TOOLS": "run_code,yc_api,mcp-tool,core"
       }
     }
   }
@@ -198,9 +196,9 @@ If not specified, all built-in tools are enabled by default, but no process tool
 ```
 
 **Example scenarios:**
-- `YEPCODE_MCP_TOOLS=run_code,storage` - Only enables built-in code execution and storage tools
+- `YEPCODE_MCP_TOOLS=run_code,yc_api` - Enables built-in code execution and API management tools
 - `YEPCODE_MCP_TOOLS=core,automation` - Only exposes processes tagged with "core" or "automation" as tools
-- `YEPCODE_MCP_TOOLS=run_code,storage,core` - Enables built-in tools plus all processes tagged with "core"
+- `YEPCODE_MCP_TOOLS=run_code,yc_api,core` - Enables built-in tools plus all processes tagged with "core"
 
 ### Environment Management
 
@@ -317,11 +315,11 @@ The MCP server can expose your YepCode Processes as individual MCP tools, making
 2. Add those tags to the `YEPCODE_MCP_TOOLS` environment variable
 3. All processes with the specified tags will be exposed as individual MCP tools
 
-There will be a tool for each exposed process: `run_ycp_<process_slug>` (or `run_ycp_<process_id>` if tool name is longer than 60 characters).
+There will be a tool for each exposed process named using the process slug (or prefixed with `yc_` and the process ID if the tool name is longer than 60 characters).
 
 For more information about process tags, see our [process tags documentation](https://yepcode.io/docs/processes/tags).
 
-#### run_ycp_<process_slug>
+#### <process_slug>
 
 ```typescript
 // Input
@@ -348,24 +346,52 @@ For more information about process tags, see our [process tags documentation](ht
 }
 ```
 
-#### get_execution
+### API Management Tools
 
-Retrieves the result of a process execution.
+The `yc_api` tool category provides comprehensive API access to manage all aspects of your YepCode workspace:
 
-```typescript
-// Input
-{
-  executionId: string;                   // ID of the execution to retrieve
-}
+**Processes Management:**
+- `get_processes` - List processes with optional filtering
+- `create_process` - Create new processes with source code
+- `get_process` - Get process details
+- `delete_process` - Delete a process
+- `get_process_versions` - Get process versions
+- `execute_process_async` - Execute a process asynchronously
+- `execute_process_sync` - Execute a process synchronously
+- `schedule_process` - Schedule a process to run automatically
 
-// Response
-{
-  executionId: string;                   // Unique execution identifier
-  logs: string[];                        // Process execution logs
-  returnValue?: unknown;                 // Process output
-  error?: string;                        // Error message if execution failed
-}
-```
+**Schedules Management:**
+- `get_schedules` - List scheduled processes
+- `get_schedule` - Get schedule details
+- `pause_schedule` - Pause a scheduled process
+- `resume_schedule` - Resume a paused schedule
+- `delete_schedule` - Delete a schedule
+
+**Variables Management:**
+- `get_variables` - List team variables
+- `create_variable` - Create a new variable
+- `update_variable` - Update an existing variable
+- `delete_variable` - Delete a variable
+
+**Storage Management:**
+- `get_storage_objects` - List storage objects
+- `upload_storage_object` - Upload a file to storage
+- `download_storage_object` - Download a file from storage
+- `delete_storage_object` - Delete a file from storage
+
+**Executions Management:**
+- `get_executions` - List executions with optional filtering
+- `get_execution` - Get execution details from API
+- `kill_execution` - Kill a running execution
+- `rerun_execution` - Rerun a previous execution
+- `get_execution_logs` - Get execution logs
+
+**Modules Management:**
+- `get_modules` - List script library modules
+- `create_module` - Create a new module
+- `get_module` - Get module details
+- `delete_module` - Delete a module
+- `get_module_versions` - Get module versions
 
 ## License
 
