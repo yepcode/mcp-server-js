@@ -22,21 +22,23 @@ import { z } from "zod";
 import { getVersion, isEmpty } from "./utils.js";
 import Logger from "./logger.js";
 import {
-  DeleteObjectSchema,
-  DownloadObjectSchema,
-  ListObjectsSchema,
+  GetStorageObjectsSchema,
+  UploadStorageObjectSchema,
+  DownloadStorageObjectSchema,
+  DeleteStorageObjectSchema,
   storageToolDefinitions,
   storageToolNames,
-  UploadObjectSchema,
 } from "./tools/storage-tool-definitions.js";
 import {
-  SetEnvVarSchema,
-  RemoveEnvVarSchema,
-  envVarsToolDefinitions,
-  envVarsToolNames,
-} from "./tools/env-vars-tool-definitions.js";
+  GetVariablesSchema,
+  CreateVariableSchema,
+  UpdateVariableSchema,
+  DeleteVariableSchema,
+  variablesToolDefinitions,
+  variablesToolNames,
+} from "./tools/variables-tool-definitions.js";
 import {
-  GetExecutionSchema,
+  GetExecutionSchema as GetExecutionResultSchema,
   getExecutionToolNames,
   getExecutionToolDefinitions,
 } from "./tools/get-execution-tool-definition.js";
@@ -47,19 +49,58 @@ import {
   RunProcessSchema,
   runCodeToolNames,
 } from "./tools/run-code-tool-definitinos.js";
+import {
+  GetSchedulesSchema,
+  GetScheduleSchema,
+  PauseScheduleSchema,
+  ResumeScheduleSchema,
+  DeleteScheduleSchema,
+  schedulesToolDefinitions,
+  schedulesToolNames,
+} from "./tools/schedules-tool-definitions.js";
+import {
+  GetProcessesSchema,
+  CreateProcessSchema,
+  GetProcessSchema,
+  DeleteProcessSchema,
+  GetProcessVersionsSchema,
+  ExecuteProcessAsyncSchema,
+  ExecuteProcessSyncSchema,
+  ScheduleProcessSchema,
+  processesToolDefinitions,
+  processesToolNames,
+} from "./tools/processes-tool-definitions.js";
+import {
+  GetExecutionsSchema,
+  GetExecutionSchema,
+  KillExecutionSchema,
+  RerunExecutionSchema,
+  GetExecutionLogsSchema,
+  executionsToolDefinitions,
+  executionsToolNames,
+} from "./tools/executions-tool-definitions.js";
+import {
+  GetModulesSchema,
+  CreateModuleSchema,
+  GetModuleSchema,
+  DeleteModuleSchema,
+  GetModuleVersionsSchema,
+  GetModuleVersionSchema,
+  DeleteModuleVersionSchema,
+  GetModuleAliasesSchema,
+  modulesToolDefinitions,
+  modulesToolNames,
+} from "./tools/modules-tool-definitions.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "run_ycp_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
 const RUN_CODE_TOOL_TAG = "run_code";
 const EXECUTIONS_TOOL_TAG = "executions";
-const ENV_VARS_TOOL_TAG = "env_vars";
-const STORAGE_TOOL_TAG = "storage";
+const API_TOOL_TAG = "api";
 
 const DEFAULT_TOOL_TAGS = [
   RUN_CODE_TOOL_TAG,
   EXECUTIONS_TOOL_TAG,
-  ENV_VARS_TOOL_TAG,
-  STORAGE_TOOL_TAG,
   RUN_PROCESS_TOOL_TAG,
 ];
 
@@ -232,11 +273,13 @@ class YepCodeMcpServer extends Server {
       if (this.tools.includes(EXECUTIONS_TOOL_TAG)) {
         tools.push(...getExecutionToolDefinitions);
       }
-      if (this.tools.includes(STORAGE_TOOL_TAG)) {
+      if (this.tools.includes(API_TOOL_TAG)) {
         tools.push(...storageToolDefinitions);
-      }
-      if (this.tools.includes(ENV_VARS_TOOL_TAG)) {
-        tools.push(...envVarsToolDefinitions);
+        tools.push(...variablesToolDefinitions);
+        tools.push(...schedulesToolDefinitions);
+        tools.push(...processesToolDefinitions);
+        tools.push(...executionsToolDefinitions);
+        tools.push(...modulesToolDefinitions);
       }
       if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();
@@ -380,54 +423,87 @@ class YepCodeMcpServer extends Server {
             }
           );
 
-        case envVarsToolNames.set:
+        case variablesToolNames.getVariables:
           return this.handleToolRequest(
-            SetEnvVarSchema,
+            GetVariablesSchema,
             request,
             async (data) => {
-              const { key, value, isSensitive } = data;
-              this.logger.info(`Setting environment variable: ${key}`, {
-                isSensitive,
+              const variables = await this.yepCodeApi.getVariables({
+                page: data.page,
+                limit: data.limit,
               });
-              await this.yepCodeEnv.setEnvVar(key, value, isSensitive);
-              return {};
+              return variables;
             }
           );
 
-        case envVarsToolNames.remove:
+        case variablesToolNames.createVariable:
           return this.handleToolRequest(
-            RemoveEnvVarSchema,
+            CreateVariableSchema,
             request,
             async (data) => {
-              this.logger.info(`Removing environment variable: ${data.key}`);
-              await this.yepCodeEnv.delEnvVar(data.key);
-              return {};
+              const variable = await this.yepCodeApi.createVariable({
+                key: data.key,
+                value: data.value,
+                isSensitive: data.isSensitive,
+              });
+              return variable;
+            }
+          );
+
+        case variablesToolNames.updateVariable:
+          return this.handleToolRequest(
+            UpdateVariableSchema,
+            request,
+            async (data) => {
+              const updateData: any = {};
+              if (data.value !== undefined) {
+                updateData.value = data.value;
+              }
+              if (data.isSensitive !== undefined) {
+                updateData.isSensitive = data.isSensitive;
+              }
+              const variable = await this.yepCodeApi.updateVariable(
+                data.id,
+                updateData
+              );
+              return variable;
+            }
+          );
+
+        case variablesToolNames.deleteVariable:
+          return this.handleToolRequest(
+            DeleteVariableSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteVariable(data.id);
+              return { result: `Variable ${data.id} deleted successfully` };
             }
           );
 
         case getExecutionToolNames.getExecution:
           return this.handleToolRequest(
-            GetExecutionSchema,
+            GetExecutionResultSchema,
             request,
             async (data) => {
               return await this.executionResult(data.executionId);
             }
           );
 
-        case storageToolNames.list:
+        case storageToolNames.getStorageObjects:
           return this.handleToolRequest(
-            ListObjectsSchema,
+            GetStorageObjectsSchema,
             request,
             async (data) => {
               const objects = await this.yepCodeApi.getObjects({
-                prefix: data?.prefix || undefined,
+                prefix: data.prefix,
               });
               return objects;
             }
           );
-        case storageToolNames.upload:
+
+        case storageToolNames.uploadStorageObject:
           return this.handleToolRequest(
-            UploadObjectSchema,
+            UploadStorageObjectSchema,
             request,
             async (data) => {
               const { filename, content } = data;
@@ -444,14 +520,15 @@ class YepCodeMcpServer extends Server {
 
               await this.yepCodeApi.createObject({
                 name: filename,
-                file: new Blob([fileContent]),
+                file: new Blob([fileContent as BlobPart]),
               });
               return { result: `Object ${filename} uploaded successfully` };
             }
           );
-        case storageToolNames.download:
+
+        case storageToolNames.downloadStorageObject:
           return this.handleToolRequest(
-            DownloadObjectSchema,
+            DownloadStorageObjectSchema,
             request,
             async (data) => {
               const { filename } = data;
@@ -471,9 +548,10 @@ class YepCodeMcpServer extends Server {
               };
             }
           );
-        case storageToolNames.delete:
+
+        case storageToolNames.deleteStorageObject:
           return this.handleToolRequest(
-            DeleteObjectSchema,
+            DeleteStorageObjectSchema,
             request,
             async (data) => {
               const { filename } = data;
@@ -481,6 +559,342 @@ class YepCodeMcpServer extends Server {
               return { result: `Object ${filename} deleted successfully` };
             }
           );
+
+        case schedulesToolNames.getSchedules:
+          return this.handleToolRequest(
+            GetSchedulesSchema,
+            request,
+            async (data) => {
+              const schedules = await this.yepCodeApi.getSchedules({
+                page: data.page,
+                limit: data.limit,
+                processId: data.processId,
+                keywords: data.keywords,
+              });
+              return schedules;
+            }
+          );
+
+        case schedulesToolNames.getSchedule:
+          return this.handleToolRequest(
+            GetScheduleSchema,
+            request,
+            async (data) => {
+              const schedule = await this.yepCodeApi.getSchedule(data.id);
+              return schedule;
+            }
+          );
+
+        case schedulesToolNames.pauseSchedule:
+          return this.handleToolRequest(
+            PauseScheduleSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.pauseSchedule(data.id);
+              return { result: `Schedule ${data.id} paused successfully` };
+            }
+          );
+
+        case schedulesToolNames.resumeSchedule:
+          return this.handleToolRequest(
+            ResumeScheduleSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.resumeSchedule(data.id);
+              return { result: `Schedule ${data.id} resumed successfully` };
+            }
+          );
+
+        case schedulesToolNames.deleteSchedule:
+          return this.handleToolRequest(
+            DeleteScheduleSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteSchedule(data.id);
+              return { result: `Schedule ${data.id} deleted successfully` };
+            }
+          );
+
+        case processesToolNames.getProcesses:
+          return this.handleToolRequest(
+            GetProcessesSchema,
+            request,
+            async (data) => {
+              const processes = await this.yepCodeApi.getProcesses({
+                keywords: data.keywords,
+                tags: data.tags,
+                page: data.page,
+                limit: data.limit,
+              });
+              return processes;
+            }
+          );
+
+        case processesToolNames.createProcess:
+          return this.handleToolRequest(
+            CreateProcessSchema,
+            request,
+            async (data) => {
+              const process = await this.yepCodeApi.createProcess({
+                name: data.name,
+                description: data.description,
+                slug: data.slug,
+                readme: data.readme,
+                programmingLanguage: data.programmingLanguage,
+                sourceCode: data.sourceCode,
+                parametersSchema: data.parametersSchema,
+                webhook: data.webhook,
+                manifest: data.manifest,
+                tags: data.tags,
+                settings: data.settings,
+              });
+              return process;
+            }
+          );
+
+        case processesToolNames.getProcess:
+          return this.handleToolRequest(
+            GetProcessSchema,
+            request,
+            async (data) => {
+              const process = await this.yepCodeApi.getProcess(data.identifier);
+              return process;
+            }
+          );
+
+        case processesToolNames.deleteProcess:
+          return this.handleToolRequest(
+            DeleteProcessSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteProcess(data.identifier);
+              return {
+                result: `Process ${data.identifier} deleted successfully`,
+              };
+            }
+          );
+
+        case processesToolNames.getProcessVersions:
+          return this.handleToolRequest(
+            GetProcessVersionsSchema,
+            request,
+            async (data) => {
+              const versions = await this.yepCodeApi.getProcessVersions(
+                data.processId,
+                {
+                  page: data.page,
+                  limit: data.limit,
+                }
+              );
+              return versions;
+            }
+          );
+
+        case processesToolNames.executeProcessAsync:
+          return this.handleToolRequest(
+            ExecuteProcessAsyncSchema,
+            request,
+            async (data) => {
+              const { executionId } = await this.yepCodeApi.executeProcessAsync(
+                data.identifier,
+                data.parameters,
+                {
+                  initiatedBy: data.initiatedBy || "@yepcode/mcp-server",
+                  ...data.settings,
+                }
+              );
+              return { executionId };
+            }
+          );
+
+        case processesToolNames.executeProcessSync:
+          return this.handleToolRequest(
+            ExecuteProcessSyncSchema,
+            request,
+            async (data) => {
+              const result = await this.yepCodeApi.executeProcessSync(
+                data.identifier,
+                data.parameters,
+                {
+                  initiatedBy: data.initiatedBy || "@yepcode/mcp-server",
+                  ...data.settings,
+                }
+              );
+              return result;
+            }
+          );
+
+        case processesToolNames.scheduleProcess:
+          return this.handleToolRequest(
+            ScheduleProcessSchema,
+            request,
+            async (data) => {
+              const schedule = await this.yepCodeApi.createSchedule(
+                data.identifier,
+                {
+                  cron: data.cron,
+                  dateTime: data.dateTime,
+                }
+              );
+              return schedule;
+            }
+          );
+
+        case executionsToolNames.getExecutions:
+          return this.handleToolRequest(
+            GetExecutionsSchema,
+            request,
+            async (data) => {
+              const executions = await this.yepCodeApi.getExecutions({
+                keywords: data.keywords,
+                processId: data.processId,
+                status: data.status,
+                from: data.from,
+                to: data.to,
+                page: data.page,
+                limit: data.limit,
+              });
+              return executions;
+            }
+          );
+
+        case executionsToolNames.getExecution:
+          return this.handleToolRequest(
+            GetExecutionSchema,
+            request,
+            async (data) => {
+              const execution = await this.yepCodeApi.getExecution(data.id);
+              return execution;
+            }
+          );
+
+        case executionsToolNames.killExecution:
+          return this.handleToolRequest(
+            KillExecutionSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.killExecution(data.id);
+              return { result: `Execution ${data.id} killed successfully` };
+            }
+          );
+
+        case executionsToolNames.rerunExecution:
+          return this.handleToolRequest(
+            RerunExecutionSchema,
+            request,
+            async (data) => {
+              const execution = await this.yepCodeApi.rerunExecution(data.id);
+              return execution;
+            }
+          );
+
+        case executionsToolNames.getExecutionLogs:
+          return this.handleToolRequest(
+            GetExecutionLogsSchema,
+            request,
+            async (data) => {
+              const logs = await this.yepCodeApi.getExecutionLogs(data.id);
+              return logs;
+            }
+          );
+
+        case modulesToolNames.getModules:
+          return this.handleToolRequest(
+            GetModulesSchema,
+            request,
+            async (data) => {
+              const modules = await this.yepCodeApi.getModules({
+                page: data.page,
+                limit: data.limit,
+              });
+              return modules;
+            }
+          );
+
+        case modulesToolNames.createModule:
+          return this.handleToolRequest(
+            CreateModuleSchema,
+            request,
+            async (data) => {
+              const module = await this.yepCodeApi.createModule({
+                name: data.name,
+              });
+              return module;
+            }
+          );
+
+        case modulesToolNames.getModule:
+          return this.handleToolRequest(
+            GetModuleSchema,
+            request,
+            async (data) => {
+              const module = await this.yepCodeApi.getModule(data.id);
+              return module;
+            }
+          );
+
+        case modulesToolNames.deleteModule:
+          return this.handleToolRequest(
+            DeleteModuleSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteModule(data.id);
+              return { result: `Module ${data.id} deleted successfully` };
+            }
+          );
+
+        case modulesToolNames.getModuleVersions:
+          return this.handleToolRequest(
+            GetModuleVersionsSchema,
+            request,
+            async (data) => {
+              const versions = await this.yepCodeApi.getModuleVersions(
+                data.moduleId,
+                {
+                  page: data.page,
+                  limit: data.limit,
+                }
+              );
+              return versions;
+            }
+          );
+
+        case modulesToolNames.getModuleVersion:
+          return this.handleToolRequest(
+            GetModuleVersionSchema,
+            request,
+            async (data) => {
+              // Note: getModuleVersion method doesn't exist in YepCodeApi
+              throw new Error(
+                "getModuleVersion method not available in YepCodeApi"
+              );
+            }
+          );
+
+        case modulesToolNames.deleteModuleVersion:
+          return this.handleToolRequest(
+            DeleteModuleVersionSchema,
+            request,
+            async (data) => {
+              // Note: deleteModuleVersion method doesn't exist in YepCodeApi
+              throw new Error(
+                "deleteModuleVersion method not available in YepCodeApi"
+              );
+            }
+          );
+
+        case modulesToolNames.getModuleAliases:
+          return this.handleToolRequest(
+            GetModuleAliasesSchema,
+            request,
+            async (data) => {
+              // Note: getModuleAliases method doesn't exist in YepCodeApi
+              throw new Error(
+                "getModuleAliases method not available in YepCodeApi"
+              );
+            }
+          );
+
         default:
           this.logger.error(`Unknown tool requested: ${request.params.name}`);
           throw new McpError(
