@@ -673,11 +673,27 @@ class YepCodeMcpServer extends Server {
             ExecuteProcessAsyncSchema,
             request,
             async (data) => {
+              // Normalize parameters: parse JSON string if needed
+              let params: Record<string, any> | undefined;
+              if (typeof data.parameters === "string") {
+                try {
+                  params = JSON.parse(data.parameters);
+                } catch (error) {
+                  throw new Error(
+                    `Invalid JSON string for parameters: ${error}`
+                  );
+                }
+              } else {
+                params = data.parameters;
+              }
+
               const { executionId } = await this.yepCodeApi.executeProcessAsync(
                 data.identifier,
-                data.parameters,
+                params,
                 {
                   initiatedBy: data.initiatedBy || "@yepcode/mcp-server",
+                  tag: data.tag,
+                  comment: data.comment,
                   ...data.settings,
                 }
               );
@@ -690,11 +706,27 @@ class YepCodeMcpServer extends Server {
             ExecuteProcessSyncSchema,
             request,
             async (data) => {
+              // Normalize parameters: parse JSON string if needed
+              let params: Record<string, any> | undefined;
+              if (typeof data.parameters === "string") {
+                try {
+                  params = JSON.parse(data.parameters);
+                } catch (error) {
+                  throw new Error(
+                    `Invalid JSON string for parameters: ${error}`
+                  );
+                }
+              } else {
+                params = data.parameters;
+              }
+
               const result = await this.yepCodeApi.executeProcessSync(
                 data.identifier,
-                data.parameters,
+                params,
                 {
                   initiatedBy: data.initiatedBy || "@yepcode/mcp-server",
+                  tag: data.tag,
+                  comment: data.comment,
                   ...data.settings,
                 }
               );

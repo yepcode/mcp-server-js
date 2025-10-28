@@ -124,6 +124,18 @@ export const GetProcessVersionsSchema = z.object({
     .describe("Amount of items to retrieve"),
 });
 
+// Schema for execution settings
+export const ExecuteProcessSettingsSchema = z.object({
+  agentPoolSlug: z
+    .string()
+    .optional()
+    .describe("Agent pool where to execute"),
+  callbackUrl: z
+    .string()
+    .optional()
+    .describe("URL to receive execution results upon completion (success or failure)"),
+});
+
 // Schema for executing a process asynchronously
 export const ExecuteProcessAsyncSchema = z.object({
   identifier: z
@@ -131,12 +143,27 @@ export const ExecuteProcessAsyncSchema = z.object({
     .describe(
       "Unique identifier of the process to execute asynchronously (UUID or slug)"
     ),
-  parameters: z.record(z.any()).optional().describe("Process parameters"),
+  parameters: z
+    .union([z.string(), z.record(z.any())])
+    .optional()
+    .describe(
+      "Process parameters (JSON string or object). Must match the process parameter schema."
+    ),
+  tag: z
+    .string()
+    .optional()
+    .describe("A version tag or an alias of the version"),
+  comment: z
+    .string()
+    .optional()
+    .describe("Optional comment or description for this execution"),
   initiatedBy: z
     .string()
     .optional()
     .describe("An identifier for the individual initiating the request"),
-  settings: z.record(z.any()).optional().describe("Execution settings"),
+  settings: ExecuteProcessSettingsSchema.optional().describe(
+    "Execution-specific settings and configuration options"
+  ),
 });
 
 // Schema for executing a process synchronously
@@ -146,12 +173,27 @@ export const ExecuteProcessSyncSchema = z.object({
     .describe(
       "Unique identifier of the process to execute synchronously (UUID or slug)"
     ),
-  parameters: z.record(z.any()).optional().describe("Process parameters"),
+  parameters: z
+    .union([z.string(), z.record(z.any())])
+    .optional()
+    .describe(
+      "Process parameters (JSON string or object). Must match the process parameter schema."
+    ),
+  tag: z
+    .string()
+    .optional()
+    .describe("A version tag or an alias of the version"),
+  comment: z
+    .string()
+    .optional()
+    .describe("Optional comment or description for this execution"),
   initiatedBy: z
     .string()
     .optional()
     .describe("An identifier for the individual initiating the request"),
-  settings: z.record(z.any()).optional().describe("Execution settings"),
+  settings: ExecuteProcessSettingsSchema.optional().describe(
+    "Execution-specific settings and configuration options"
+  ),
 });
 
 // Schema for scheduling a process
@@ -364,17 +406,39 @@ export const processesToolDefinitions = [
             "Unique identifier of the process to execute asynchronously (UUID or slug)",
         },
         parameters: {
-          type: "object",
-          description: "Process parameters",
+          oneOf: [{ type: "string" }, { type: "object" }],
+          description:
+            "Process parameters (JSON string or object). Must match the process parameter schema.",
+        },
+        tag: {
+          type: "string",
+          description: "A version tag or an alias of the version",
+        },
+        comment: {
+          type: "string",
+          description:
+            "Optional comment or description for this execution. Useful for tracking and debugging purposes.",
         },
         initiatedBy: {
           type: "string",
           description:
-            "An identifier for the individual initiating the request",
+            "An identifier for the individual initiating the request. This could be an employee ID, a username, or any other unique identifier.",
         },
         settings: {
           type: "object",
-          description: "Execution settings",
+          properties: {
+            agentPoolSlug: {
+              type: "string",
+              description: "Agent pool where to execute",
+            },
+            callbackUrl: {
+              type: "string",
+              description:
+                "URL to receive execution results upon completion (success or failure)",
+            },
+          },
+          description:
+            "Execution-specific settings and configuration options. Overrides default process settings for this execution.",
         },
       },
       required: ["identifier"],
@@ -393,17 +457,39 @@ export const processesToolDefinitions = [
             "Unique identifier of the process to execute synchronously (UUID or slug)",
         },
         parameters: {
-          type: "object",
-          description: "Process parameters",
+          oneOf: [{ type: "string" }, { type: "object" }],
+          description:
+            "Process parameters (JSON string or object). Must match the process parameter schema.",
+        },
+        tag: {
+          type: "string",
+          description: "A version tag or an alias of the version",
+        },
+        comment: {
+          type: "string",
+          description:
+            "Optional comment or description for this execution. Useful for tracking and debugging purposes.",
         },
         initiatedBy: {
           type: "string",
           description:
-            "An identifier for the individual initiating the request",
+            "An identifier for the individual initiating the request. This could be an employee ID, a username, or any other unique identifier.",
         },
         settings: {
           type: "object",
-          description: "Execution settings",
+          properties: {
+            agentPoolSlug: {
+              type: "string",
+              description: "Agent pool where to execute",
+            },
+            callbackUrl: {
+              type: "string",
+              description:
+                "URL to receive execution results upon completion (success or failure)",
+            },
+          },
+          description:
+            "Execution-specific settings and configuration options. Overrides default process settings for this execution.",
         },
       },
       required: ["identifier"],
