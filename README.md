@@ -160,7 +160,8 @@ You can control which tools are enabled by setting the `YEPCODE_MCP_TOOLS` envir
 
 **Built-in tool categories:**
 - `run_code`: Enables the code execution tool
-- `yc_api`: Enables all API management tools (processes, schedules, variables, storage, executions, modules)
+- `yc_api`: Enables all basic API management tools (processes, schedules, variables, storage, executions, modules)
+- `yc_api_full`: Enables all API management tools including version-related tools (extends `yc_api` with additional process and module version management tools)
 
 **Process tags:**
 - Any tag used in your YepCode processes (e.g., `mcp-tool`, `core`, `automation`, etc.)
@@ -196,7 +197,8 @@ If not specified, all built-in tools are enabled by default, but no process tool
 ```
 
 **Example scenarios:**
-- `YEPCODE_MCP_TOOLS=run_code,yc_api` - Enables built-in code execution and API management tools
+- `YEPCODE_MCP_TOOLS=run_code,yc_api` - Enables built-in code execution and basic API management tools
+- `YEPCODE_MCP_TOOLS=run_code,yc_api_full` - Enables built-in code execution and all API management tools (including version management)
 - `YEPCODE_MCP_TOOLS=core,automation` - Only exposes processes tagged with "core" or "automation" as tools
 - `YEPCODE_MCP_TOOLS=run_code,yc_api,core` - Enables built-in tools plus all processes tagged with "core"
 
@@ -348,14 +350,21 @@ For more information about process tags, see our [process tags documentation](ht
 
 ### API Management Tools
 
-The `yc_api` tool category provides comprehensive API access to manage all aspects of your YepCode workspace:
+The API management tool categories (`yc_api` and `yc_api_full`) provide comprehensive API access to manage all aspects of your YepCode workspace:
+
+**Basic API tools (`yc_api`):**
+The `yc_api` tag enables standard API management tools for core operations across your workspace.
+
+**Extended API tools (`yc_api_full`):**
+The `yc_api_full` tag includes everything from `yc_api` plus additional tools for managing process and module versions.
 
 **Processes Management:**
 - `get_processes` - List processes with optional filtering
 - `create_process` - Create new processes with source code
 - `get_process` - Get process details
+- `update_process` - Update an existing process
 - `delete_process` - Delete a process
-- `get_process_versions` - Get process versions
+- `get_process_versions` - Get process versions (requires `yc_api_full`)
 - `execute_process_async` - Execute a process asynchronously
 - `execute_process_sync` - Execute a process synchronously
 - `schedule_process` - Schedule a process to run automatically
@@ -391,7 +400,10 @@ The `yc_api` tool category provides comprehensive API access to manage all aspec
 - `create_module` - Create a new module
 - `get_module` - Get module details
 - `delete_module` - Delete a module
-- `get_module_versions` - Get module versions
+- `get_module_versions` - Get module versions (requires `yc_api_full`)
+- `get_module_version` - Get a specific module version (requires `yc_api_full`)
+- `delete_module_version` - Delete a module version (requires `yc_api_full`)
+- `get_module_aliases` - Get module version aliases (requires `yc_api_full`)
 
 ## License
 

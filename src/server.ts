@@ -64,6 +64,7 @@ import {
   ExecuteProcessSyncSchema,
   ScheduleProcessSchema,
   processesToolDefinitions,
+  processesWithVersionsToolDefinitions,
   processesToolNames,
 } from "./tools/processes-tool-definitions.js";
 import {
@@ -85,13 +86,17 @@ import {
   DeleteModuleVersionSchema,
   GetModuleAliasesSchema,
   modulesToolDefinitions,
+  modulesWithVersionsToolDefinitions,
   modulesToolNames,
 } from "./tools/modules-tool-definitions.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "yc_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
 const RUN_CODE_TOOL_TAG = "run_code";
-const API_TOOL_TAG = "yc_api";
+const API_TOOL_TAGS = {
+  DEFAULT: "yc_api",
+  FULL: "yc_api_full",
+};
 
 const DEFAULT_TOOL_TAGS = [RUN_CODE_TOOL_TAG, RUN_PROCESS_TOOL_TAG];
 
@@ -261,13 +266,20 @@ class YepCodeMcpServer extends Server {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
       const tools = [];
-      if (this.tools.includes(API_TOOL_TAG)) {
+      if (
+        this.tools.includes(API_TOOL_TAGS.DEFAULT) ||
+        this.tools.includes(API_TOOL_TAGS.FULL)
+      ) {
         tools.push(...storageToolDefinitions);
         tools.push(...variablesToolDefinitions);
         tools.push(...schedulesToolDefinitions);
         tools.push(...processesToolDefinitions);
         tools.push(...executionsToolDefinitions);
         tools.push(...modulesToolDefinitions);
+      }
+      if (this.tools.includes(API_TOOL_TAGS.FULL)) {
+        tools.push(...processesWithVersionsToolDefinitions);
+        tools.push(...modulesWithVersionsToolDefinitions);
       }
       if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();

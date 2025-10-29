@@ -2,8 +2,21 @@ import { z } from "zod";
 
 // Schema for getting modules with pagination
 export const GetModulesSchema = z.object({
-  page: z.number().int().min(0).default(0).optional().describe("Page number for pagination (0-based index)"),
-  limit: z.number().int().min(1).max(100).default(10).optional().describe("Maximum number of modules to retrieve per page"),
+  page: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .optional()
+    .describe("Page number for pagination (0-based index)"),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10)
+    .optional()
+    .describe("Maximum number of modules to retrieve per page"),
 });
 
 // Schema for creating a module
@@ -18,19 +31,34 @@ export const CreateModuleSchema = z.object({
 
 // Schema for getting a specific module
 export const GetModuleSchema = z.object({
-  id: z.string().describe("Unique identifier (UUID) of the script library module to retrieve"),
+  id: z
+    .string()
+    .describe(
+      "Unique identifier (UUID) of the script library module to retrieve"
+    ),
 });
 
 // Schema for deleting a module
 export const DeleteModuleSchema = z.object({
-  id: z.string().describe("Unique identifier (UUID) of the script library module to delete"),
+  id: z
+    .string()
+    .describe(
+      "Unique identifier (UUID) of the script library module to delete"
+    ),
 });
 
 // Schema for getting module versions
 export const GetModuleVersionsSchema = z.object({
   moduleId: z.string().describe("Module ID"),
   page: z.number().int().min(0).default(0).optional().describe("Page number"),
-  limit: z.number().int().min(1).max(100).default(10).optional().describe("Amount of items to retrieve"),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10)
+    .optional()
+    .describe("Amount of items to retrieve"),
 });
 
 // Schema for getting a specific module version
@@ -50,7 +78,14 @@ export const GetModuleAliasesSchema = z.object({
   moduleId: z.string().describe("Module ID"),
   versionId: z.string().optional().describe("Version ID"),
   page: z.number().int().min(0).default(0).optional().describe("Page number"),
-  limit: z.number().int().min(1).max(100).default(10).optional().describe("Amount of items to retrieve"),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10)
+    .optional()
+    .describe("Amount of items to retrieve"),
 });
 
 // Tool names
@@ -70,7 +105,8 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.getModules,
     title: "Get Modules",
-    description: "Retrieves a paginated list of script library modules. Modules are reusable code libraries that can be imported and used across different processes.",
+    description:
+      "Retrieves a paginated list of script library modules. Modules are reusable code libraries that can be imported and used across different processes.",
     inputSchema: {
       type: "object",
       properties: {
@@ -92,7 +128,8 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.createModule,
     title: "Create Module",
-    description: "Creates a new script library module with source code and metadata. Modules can be written in JavaScript or Python and can be imported by processes.",
+    description:
+      "Creates a new script library module with source code and metadata. Modules can be written in JavaScript or Python and can be imported by processes.",
     inputSchema: {
       type: "object",
       properties: {
@@ -129,13 +166,15 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.getModule,
     title: "Get Module",
-    description: "Retrieves detailed information about a specific script library module including its source code, metadata, and version information.",
+    description:
+      "Retrieves detailed information about a specific script library module including its source code, metadata, and version information.",
     inputSchema: {
       type: "object",
       properties: {
         id: {
           type: "string",
-          description: "Unique identifier (UUID) of the script library module to retrieve",
+          description:
+            "Unique identifier (UUID) of the script library module to retrieve",
         },
       },
       required: ["id"],
@@ -144,22 +183,28 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.deleteModule,
     title: "Delete Module",
-    description: "Deletes a script library module and all its versions. This action cannot be undone.",
+    description:
+      "Deletes a script library module and all its versions. This action cannot be undone.",
     inputSchema: {
       type: "object",
       properties: {
         id: {
           type: "string",
-          description: "Unique identifier (UUID) of the script library module to delete",
+          description:
+            "Unique identifier (UUID) of the script library module to delete",
         },
       },
       required: ["id"],
     },
   },
+];
+
+export const modulesWithVersionsToolDefinitions = [
   {
     name: modulesToolNames.getModuleVersions,
     title: "Get Module Versions",
-    description: "Retrieves a paginated list of versions for a specific module.",
+    description:
+      "Retrieves a paginated list of versions for a specific module.",
     inputSchema: {
       type: "object",
       properties: {
@@ -186,7 +231,8 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.getModuleVersion,
     title: "Get Module Version",
-    description: "Retrieves detailed information about a specific module version.",
+    description:
+      "Retrieves detailed information about a specific module version.",
     inputSchema: {
       type: "object",
       properties: {
@@ -205,7 +251,8 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.deleteModuleVersion,
     title: "Delete Module Version",
-    description: "Deletes a specific module version. This action cannot be undone.",
+    description:
+      "Deletes a specific module version. This action cannot be undone.",
     inputSchema: {
       type: "object",
       properties: {
@@ -224,7 +271,8 @@ export const modulesToolDefinitions = [
   {
     name: modulesToolNames.getModuleAliases,
     title: "Get Module Aliases",
-    description: "Retrieves a paginated list of version aliases for a specific module.",
+    description:
+      "Retrieves a paginated list of version aliases for a specific module.",
     inputSchema: {
       type: "object",
       properties: {
