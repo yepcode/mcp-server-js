@@ -110,6 +110,73 @@ export const DeleteProcessSchema = z.object({
     .describe("Unique identifier of the process to delete (UUID or slug)"),
 });
 
+// Schema for updating a process
+export const UpdateProcessSchema = z.object({
+  identifier: z
+    .string()
+    .describe("Unique identifier of the process to update (UUID or slug)"),
+  name: z
+    .string()
+    .optional()
+    .describe(
+      "The updated name of the process. This will be displayed in the UI and used for identification."
+    ),
+  slug: z
+    .string()
+    .optional()
+    .describe(
+      "The updated unique identifier for the process. Used in URLs and API calls. Must be URL-safe (lowercase, hyphens, no spaces)."
+    ),
+  description: z
+    .string()
+    .optional()
+    .describe(
+      "The updated detailed description of what the process does. This helps users understand the process purpose and functionality."
+    ),
+  readme: z
+    .string()
+    .optional()
+    .describe(
+      "The updated markdown documentation for the process. This can include usage instructions, examples, and additional context."
+    ),
+  sourceCode: z
+    .string()
+    .optional()
+    .describe(
+      "The updated source code of the process. This is the executable code that will run when the process is executed."
+    ),
+  parametersSchema: z
+    .string()
+    .optional()
+    .describe(
+      "The updated JSON Schema defining the input parameters for the process. This schema is used to generate forms in the UI and validate input data."
+    ),
+  webhook: z
+    .record(z.any())
+    .optional()
+    .describe(
+      "Updated webhook configuration for the process. Defines how the process can be triggered via HTTP webhooks."
+    ),
+  settings: z
+    .record(z.any())
+    .optional()
+    .describe(
+      "Updated process settings and configuration options. Includes publication settings, form configurations, and dependencies."
+    ),
+  manifest: z
+    .record(z.any())
+    .optional()
+    .describe(
+      "Updated process manifest configuration. Contains metadata and configuration for the process deployment and execution."
+    ),
+  tags: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "Updated tags for categorizing and organizing processes. Used for filtering and grouping in the UI."
+    ),
+});
+
 // Schema for getting process versions
 export const GetProcessVersionsSchema = z.object({
   processId: z.string().describe("Process ID"),
@@ -218,6 +285,7 @@ export const processesToolNames = {
   getProcesses: "get_processes",
   createProcess: "create_process",
   getProcess: "get_process",
+  updateProcess: "update_process",
   deleteProcess: "delete_process",
   getProcessVersions: "get_process_versions",
   executeProcessAsync: "execute_process_async",
@@ -341,6 +409,74 @@ export const processesToolDefinitions = [
           type: "string",
           description:
             "Unique identifier of the process to retrieve (UUID or slug)",
+        },
+      },
+      required: ["identifier"],
+    },
+  },
+  {
+    name: processesToolNames.updateProcess,
+    title: "Update Process",
+    description:
+      "Updates an existing process with new configuration, source code, or metadata. All fields provided will replace the existing values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        identifier: {
+          type: "string",
+          description:
+            "Unique identifier of the process to update (UUID or slug)",
+        },
+        name: {
+          type: "string",
+          description:
+            "The updated name of the process. This will be displayed in the UI and used for identification.",
+        },
+        slug: {
+          type: "string",
+          description:
+            "The updated unique identifier for the process. Used in URLs and API calls. Must be URL-safe (lowercase, hyphens, no spaces).",
+        },
+        description: {
+          type: "string",
+          description:
+            "The updated detailed description of what the process does. This helps users understand the process purpose and functionality.",
+        },
+        readme: {
+          type: "string",
+          description:
+            "The updated markdown documentation for the process. This can include usage instructions, examples, and additional context.",
+        },
+        sourceCode: {
+          type: "string",
+          description:
+            "The updated source code of the process. This is the executable code that will run when the process is executed.",
+        },
+        parametersSchema: {
+          type: "string",
+          description:
+            "The updated JSON Schema defining the input parameters for the process. This schema is used to generate forms in the UI and validate input data.",
+        },
+        webhook: {
+          type: "object",
+          description:
+            "Updated webhook configuration for the process. Defines how the process can be triggered via HTTP webhooks.",
+        },
+        settings: {
+          type: "object",
+          description:
+            "Updated process settings and configuration options. Includes publication settings, form configurations, and dependencies.",
+        },
+        manifest: {
+          type: "object",
+          description:
+            "Updated process manifest configuration. Contains metadata and configuration for the process deployment and execution.",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Updated tags for categorizing and organizing processes. Used for filtering and grouping in the UI.",
         },
       },
       required: ["identifier"],

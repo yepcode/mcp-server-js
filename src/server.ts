@@ -57,6 +57,7 @@ import {
   GetProcessesSchema,
   CreateProcessSchema,
   GetProcessSchema,
+  UpdateProcessSchema,
   DeleteProcessSchema,
   GetProcessVersionsSchema,
   ExecuteProcessAsyncSchema,
@@ -636,6 +637,20 @@ class YepCodeMcpServer extends Server {
             request,
             async (data) => {
               const process = await this.yepCodeApi.getProcess(data.identifier);
+              return process;
+            }
+          );
+
+        case processesToolNames.updateProcess:
+          return this.handleToolRequest(
+            UpdateProcessSchema,
+            request,
+            async (data) => {
+              const { identifier, ...rest } = data;
+              const process = await this.yepCodeApi.updateProcess(
+                identifier,
+                rest
+              );
               return process;
             }
           );
