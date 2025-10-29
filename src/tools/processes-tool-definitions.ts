@@ -500,34 +500,6 @@ export const processesToolDefinitions = [
     },
   },
   {
-    name: processesToolNames.getProcessVersions,
-    title: "Get Process Versions",
-    description:
-      "Retrieves a paginated list of versions for a specific process.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        processId: {
-          type: "string",
-          description: "Process ID",
-        },
-        page: {
-          type: "integer",
-          format: "int32",
-          default: 0,
-          description: "Page number",
-        },
-        limit: {
-          type: "integer",
-          format: "int32",
-          default: 10,
-          description: "Amount of items to retrieve",
-        },
-      },
-      required: ["processId"],
-    },
-  },
-  {
     name: processesToolNames.executeProcessAsync,
     title: "Execute Process Async",
     description:
@@ -666,6 +638,37 @@ export const processesToolDefinitions = [
         },
       },
       required: ["identifier", "type"],
+    },
+  },
+];
+
+export const processesWithVersionsToolDefinitions = [
+  {
+    name: processesToolNames.getProcessVersions,
+    title: "Get Process Versions",
+    description:
+      "Retrieves a paginated list of versions for a specific process.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        page: {
+          type: "integer",
+          format: "int32",
+          default: 0,
+          description: "Page number",
+        },
+        limit: {
+          type: "integer",
+          format: "int32",
+          default: 10,
+          description: "Amount of items to retrieve",
+        },
+      },
+      required: ["processId"],
     },
   },
 ];
