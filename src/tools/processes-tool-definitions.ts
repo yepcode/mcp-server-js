@@ -144,7 +144,7 @@ export const ExecuteProcessAsyncSchema = z.object({
       "Unique identifier of the process to execute asynchronously (UUID or slug)"
     ),
   parameters: z
-    .union([z.string(), z.record(z.any())])
+    .any()
     .optional()
     .describe(
       "Process parameters (JSON string or object). Must match the process parameter schema."
@@ -174,7 +174,7 @@ export const ExecuteProcessSyncSchema = z.object({
       "Unique identifier of the process to execute synchronously (UUID or slug)"
     ),
   parameters: z
-    .union([z.string(), z.record(z.any())])
+    .any()
     .optional()
     .describe(
       "Process parameters (JSON string or object). Must match the process parameter schema."
@@ -406,7 +406,7 @@ export const processesToolDefinitions = [
             "Unique identifier of the process to execute asynchronously (UUID or slug)",
         },
         parameters: {
-          oneOf: [{ type: "string" }, { type: "object" }],
+          type: ["string", "object"],
           description:
             "Process parameters (JSON string or object). Must match the process parameter schema.",
         },
@@ -457,7 +457,7 @@ export const processesToolDefinitions = [
             "Unique identifier of the process to execute synchronously (UUID or slug)",
         },
         parameters: {
-          oneOf: [{ type: "string" }, { type: "object" }],
+          type: ["string", "object"],
           description:
             "Process parameters (JSON string or object). Must match the process parameter schema.",
         },
