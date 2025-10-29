@@ -126,14 +126,13 @@ export const GetProcessVersionsSchema = z.object({
 
 // Schema for execution settings
 export const ExecuteProcessSettingsSchema = z.object({
-  agentPoolSlug: z
-    .string()
-    .optional()
-    .describe("Agent pool where to execute"),
+  agentPoolSlug: z.string().optional().describe("Agent pool where to execute"),
   callbackUrl: z
     .string()
     .optional()
-    .describe("URL to receive execution results upon completion (success or failure)"),
+    .describe(
+      "URL to receive execution results upon completion (success or failure)"
+    ),
 });
 
 // Schema for executing a process asynchronously
