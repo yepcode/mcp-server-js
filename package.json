@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
-    "@yepcode/run": "^1.10.0",
+    "@yepcode/run": "^1.11.0",
     "dotenv": "^16.4.7",
     "zod": "^3.24.2"
   },

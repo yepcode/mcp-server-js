@@ -50,6 +50,7 @@ import {
   PauseScheduleSchema,
   ResumeScheduleSchema,
   DeleteScheduleSchema,
+  UpdateScheduleSchema,
   schedulesToolDefinitions,
   schedulesToolNames,
 } from "./tools/schedules-tool-definitions.js";
@@ -60,6 +61,14 @@ import {
   UpdateProcessSchema,
   DeleteProcessSchema,
   GetProcessVersionsSchema,
+  PublishProcessVersionSchema,
+  GetProcessVersionSchema,
+  DeleteProcessVersionSchema,
+  GetProcessVersionAliasesSchema,
+  CreateProcessVersionAliasSchema,
+  GetProcessVersionAliasSchema,
+  DeleteProcessVersionAliasSchema,
+  UpdateProcessVersionAliasSchema,
   ExecuteProcessAsyncSchema,
   ExecuteProcessSyncSchema,
   ScheduleProcessSchema,
@@ -80,15 +89,29 @@ import {
   GetModulesSchema,
   CreateModuleSchema,
   GetModuleSchema,
+  UpdateModuleSchema,
   DeleteModuleSchema,
   GetModuleVersionsSchema,
+  PublishModuleVersionSchema,
   GetModuleVersionSchema,
   DeleteModuleVersionSchema,
   GetModuleAliasesSchema,
+  CreateModuleVersionAliasSchema,
+  GetModuleVersionAliasSchema,
+  DeleteModuleVersionAliasSchema,
+  UpdateModuleVersionAliasSchema,
   modulesToolDefinitions,
   modulesWithVersionsToolDefinitions,
   modulesToolNames,
 } from "./tools/modules-tool-definitions.js";
+import {
+  GetTokenSchema,
+  GetAllServiceAccountsSchema,
+  CreateServiceAccountSchema,
+  DeleteServiceAccountSchema,
+  authToolDefinitions,
+  authToolNames,
+} from "./tools/auth-tool-definitions.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "yc_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
@@ -280,6 +303,7 @@ class YepCodeMcpServer extends Server {
       if (this.tools.includes(API_TOOL_TAGS.FULL)) {
         tools.push(...processesWithVersionsToolDefinitions);
         tools.push(...modulesWithVersionsToolDefinitions);
+        tools.push(...authToolDefinitions);
       }
       if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();
@@ -606,6 +630,52 @@ class YepCodeMcpServer extends Server {
             }
           );
 
+        case schedulesToolNames.updateSchedule:
+          return this.handleToolRequest(
+            UpdateScheduleSchema,
+            request,
+            async (data) => {
+              const { id, ...updateData } = data;
+
+              // Build the update object, handling input.parameters if it's a JSON string
+              const updatePayload: any = {};
+              if (updateData.cron !== undefined) {
+                updatePayload.cron = updateData.cron;
+              }
+              if (updateData.dateTime !== undefined) {
+                updatePayload.dateTime = updateData.dateTime;
+              }
+              if (updateData.allowConcurrentExecutions !== undefined) {
+                updatePayload.allowConcurrentExecutions =
+                  updateData.allowConcurrentExecutions;
+              }
+              if (updateData.input !== undefined) {
+                updatePayload.input = { ...updateData.input };
+                // Parse parameters if it's a JSON string
+                if (
+                  updatePayload.input.parameters &&
+                  typeof updatePayload.input.parameters === "string"
+                ) {
+                  try {
+                    updatePayload.input.parameters = JSON.parse(
+                      updatePayload.input.parameters
+                    );
+                  } catch (error) {
+                    throw new Error(
+                      `Invalid JSON string for parameters: ${error}`
+                    );
+                  }
+                }
+              }
+
+              const schedule = await this.yepCodeApi.updateSchedule(
+                id,
+                updatePayload
+              );
+              return schedule;
+            }
+          );
+
         case processesToolNames.getProcesses:
           return this.handleToolRequest(
             GetProcessesSchema,
@@ -692,6 +762,139 @@ class YepCodeMcpServer extends Server {
                 }
               );
               return versions;
+            }
+          );
+
+        case processesToolNames.publishProcessVersion:
+          return this.handleToolRequest(
+            PublishProcessVersionSchema,
+            request,
+            async (data) => {
+              const {
+                processId,
+                tag,
+                readme,
+                comment,
+                sourceCode,
+                parametersSchema,
+              } = data;
+              const publishData: any = {};
+              if (tag !== undefined) publishData.tag = tag;
+              if (readme !== undefined) publishData.readme = readme;
+              if (comment !== undefined) publishData.comment = comment;
+              if (sourceCode !== undefined) publishData.sourceCode = sourceCode;
+              if (parametersSchema !== undefined)
+                publishData.parametersSchema = parametersSchema;
+              const version = await this.yepCodeApi.publishProcessVersion(
+                processId,
+                publishData
+              );
+              return version;
+            }
+          );
+
+        case processesToolNames.getProcessVersion:
+          return this.handleToolRequest(
+            GetProcessVersionSchema,
+            request,
+            async (data) => {
+              const version = await this.yepCodeApi.getProcessVersion(
+                data.processId,
+                data.versionId
+              );
+              return version;
+            }
+          );
+
+        case processesToolNames.deleteProcessVersion:
+          return this.handleToolRequest(
+            DeleteProcessVersionSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteProcessVersion(
+                data.processId,
+                data.versionId
+              );
+              return {
+                result: `Process version ${data.versionId} deleted successfully`,
+              };
+            }
+          );
+
+        case processesToolNames.getProcessVersionAliases:
+          return this.handleToolRequest(
+            GetProcessVersionAliasesSchema,
+            request,
+            async (data) => {
+              const aliases = await this.yepCodeApi.getProcessVersionAliases(
+                data.processId,
+                {
+                  versionId: data.versionId,
+                  page: data.page,
+                  limit: data.limit,
+                }
+              );
+              return aliases;
+            }
+          );
+
+        case processesToolNames.createProcessVersionAlias:
+          return this.handleToolRequest(
+            CreateProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              const { processId, ...aliasData } = data;
+              const alias = await this.yepCodeApi.createProcessVersionAlias(
+                processId,
+                aliasData
+              );
+              return alias;
+            }
+          );
+
+        case processesToolNames.getProcessVersionAlias:
+          return this.handleToolRequest(
+            GetProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              const alias = await this.yepCodeApi.getProcessVersionAlias(
+                data.processId,
+                data.aliasId
+              );
+              return alias;
+            }
+          );
+
+        case processesToolNames.deleteProcessVersionAlias:
+          return this.handleToolRequest(
+            DeleteProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteProcessVersionAlias(
+                data.processId,
+                data.aliasId
+              );
+              return {
+                result: `Process version alias ${data.aliasId} deleted successfully`,
+              };
+            }
+          );
+
+        case processesToolNames.updateProcessVersionAlias:
+          return this.handleToolRequest(
+            UpdateProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              const { processId, aliasId, name, versionId } = data;
+              const updateData: any = {};
+              if (name !== undefined) updateData.name = name;
+              if (versionId !== undefined) updateData.versionId = versionId;
+              const alias = await this.yepCodeApi.updateProcessVersionAlias(
+                processId,
+                aliasId,
+                updateData
+              );
+              return alias;
             }
           );
 
@@ -870,6 +1073,17 @@ class YepCodeMcpServer extends Server {
             }
           );
 
+        case modulesToolNames.updateModule:
+          return this.handleToolRequest(
+            UpdateModuleSchema,
+            request,
+            async (data) => {
+              const { id, ...updateData } = data;
+              const module = await this.yepCodeApi.updateModule(id, updateData);
+              return module;
+            }
+          );
+
         case modulesToolNames.deleteModule:
           return this.handleToolRequest(
             DeleteModuleSchema,
@@ -893,6 +1107,24 @@ class YepCodeMcpServer extends Server {
                 }
               );
               return versions;
+            }
+          );
+
+        case modulesToolNames.publishModuleVersion:
+          return this.handleToolRequest(
+            PublishModuleVersionSchema,
+            request,
+            async (data) => {
+              const { moduleId, tag, comment, sourceCode } = data;
+              const publishData: any = {};
+              if (tag !== undefined) publishData.tag = tag;
+              if (comment !== undefined) publishData.comment = comment;
+              if (sourceCode !== undefined) publishData.sourceCode = sourceCode;
+              const version = await this.yepCodeApi.publishModuleVersion(
+                moduleId,
+                publishData
+              );
+              return version;
             }
           );
 
@@ -929,6 +1161,113 @@ class YepCodeMcpServer extends Server {
               throw new Error(
                 "getModuleAliases method not available in YepCodeApi"
               );
+            }
+          );
+
+        case modulesToolNames.createModuleVersionAlias:
+          return this.handleToolRequest(
+            CreateModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              const { moduleId, ...aliasData } = data;
+              const alias = await this.yepCodeApi.createModuleVersionAlias(
+                moduleId,
+                aliasData
+              );
+              return alias;
+            }
+          );
+
+        case modulesToolNames.getModuleVersionAlias:
+          return this.handleToolRequest(
+            GetModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              const alias = await this.yepCodeApi.getModuleVersionAlias(
+                data.moduleId,
+                data.aliasId
+              );
+              return alias;
+            }
+          );
+
+        case modulesToolNames.deleteModuleVersionAlias:
+          return this.handleToolRequest(
+            DeleteModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteModuleVersionAlias(
+                data.moduleId,
+                data.aliasId
+              );
+              return {
+                result: `Module version alias ${data.aliasId} deleted successfully`,
+              };
+            }
+          );
+
+        case modulesToolNames.updateModuleVersionAlias:
+          return this.handleToolRequest(
+            UpdateModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              const { moduleId, aliasId, name, versionId } = data;
+              const updateData: any = {};
+              if (name !== undefined) updateData.name = name;
+              if (versionId !== undefined) updateData.versionId = versionId;
+              const alias = await this.yepCodeApi.updateModuleVersionAlias(
+                moduleId,
+                aliasId,
+                updateData
+              );
+              return alias;
+            }
+          );
+
+        case authToolNames.getToken:
+          return this.handleToolRequest(
+            GetTokenSchema,
+            request,
+            async (data) => {
+              const token = await this.yepCodeApi.getToken(data.apiToken);
+              return token;
+            }
+          );
+
+        case authToolNames.getAllServiceAccounts:
+          return this.handleToolRequest(
+            GetAllServiceAccountsSchema,
+            request,
+            async () => {
+              const serviceAccounts =
+                await this.yepCodeApi.getAllServiceAccounts();
+              return serviceAccounts;
+            }
+          );
+
+        case authToolNames.createServiceAccount:
+          return this.handleToolRequest(
+            CreateServiceAccountSchema,
+            request,
+            async (data) => {
+              const serviceAccount = await this.yepCodeApi.createServiceAccount(
+                {
+                  name: data.name,
+                }
+              );
+              return serviceAccount;
+            }
+          );
+
+        case authToolNames.deleteServiceAccount:
+          return this.handleToolRequest(
+            DeleteServiceAccountSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteServiceAccount(data.id);
+              return {
+                result: `Service account ${data.id} deleted successfully`,
+              };
             }
           );
 

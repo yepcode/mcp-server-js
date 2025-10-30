@@ -191,6 +191,78 @@ export const GetProcessVersionsSchema = z.object({
     .describe("Amount of items to retrieve"),
 });
 
+// Schema for publishing a process version
+export const PublishProcessVersionSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  tag: z.string().optional().describe("Version tag"),
+  readme: z.string().optional().describe("Version readme"),
+  comment: z.string().optional().describe("Version comment"),
+  sourceCode: z.string().optional().describe("Process source code"),
+  parametersSchema: z
+    .string()
+    .optional()
+    .describe(
+      "JSON Schema defining the input parameters for the process version"
+    ),
+});
+
+// Schema for getting a specific process version
+export const GetProcessVersionSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  versionId: z.string().describe("Version ID"),
+});
+
+// Schema for deleting a process version
+export const DeleteProcessVersionSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  versionId: z.string().describe("Version ID"),
+});
+
+// Schema for getting process version aliases
+export const GetProcessVersionAliasesSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  versionId: z.string().optional().describe("Version ID"),
+  page: z.number().int().min(0).default(0).optional().describe("Page number"),
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(10)
+    .optional()
+    .describe("Amount of items to retrieve"),
+});
+
+// Schema for creating a process version alias
+export const CreateProcessVersionAliasSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  name: z.string().describe("Alias name"),
+  versionId: z.string().describe("The version id of the process being aliased"),
+});
+
+// Schema for getting a specific process version alias
+export const GetProcessVersionAliasSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  aliasId: z.string().describe("Alias ID"),
+});
+
+// Schema for deleting a process version alias
+export const DeleteProcessVersionAliasSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  aliasId: z.string().describe("Alias ID"),
+});
+
+// Schema for updating a process version alias
+export const UpdateProcessVersionAliasSchema = z.object({
+  processId: z.string().describe("Process ID"),
+  aliasId: z.string().describe("Alias ID"),
+  name: z.string().optional().describe("Alias name"),
+  versionId: z
+    .string()
+    .optional()
+    .describe("The version id of the process being aliased"),
+});
+
 // Schema for execution settings
 export const ExecuteProcessSettingsSchema = z.object({
   agentPoolSlug: z.string().optional().describe("Agent pool where to execute"),
@@ -288,6 +360,14 @@ export const processesToolNames = {
   updateProcess: "update_process",
   deleteProcess: "delete_process",
   getProcessVersions: "get_process_versions",
+  publishProcessVersion: "publish_process_version",
+  getProcessVersion: "get_process_version",
+  deleteProcessVersion: "delete_process_version",
+  getProcessVersionAliases: "get_process_version_aliases",
+  createProcessVersionAlias: "create_process_version_alias",
+  getProcessVersionAlias: "get_process_version_alias",
+  deleteProcessVersionAlias: "delete_process_version_alias",
+  updateProcessVersionAlias: "update_process_version_alias",
   executeProcessAsync: "execute_process_async",
   executeProcessSync: "execute_process_sync",
   scheduleProcess: "schedule_process",
@@ -669,6 +749,205 @@ export const processesWithVersionsToolDefinitions = [
         },
       },
       required: ["processId"],
+    },
+  },
+  {
+    name: processesToolNames.publishProcessVersion,
+    title: "Publish Process Version",
+    description: "Publishes a new version of a process.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        tag: {
+          type: "string",
+          description: "Version tag",
+        },
+        readme: {
+          type: "string",
+          description: "Version readme",
+        },
+        comment: {
+          type: "string",
+          description: "Version comment",
+        },
+        sourceCode: {
+          type: "string",
+          description: "Process source code",
+        },
+        parametersSchema: {
+          type: "string",
+          description:
+            "JSON Schema defining the input parameters for the process version",
+        },
+      },
+      required: ["processId"],
+    },
+  },
+  {
+    name: processesToolNames.getProcessVersion,
+    title: "Get Process Version",
+    description:
+      "Retrieves detailed information about a specific process version.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        versionId: {
+          type: "string",
+          description: "Version ID",
+        },
+      },
+      required: ["processId", "versionId"],
+    },
+  },
+  {
+    name: processesToolNames.deleteProcessVersion,
+    title: "Delete Process Version",
+    description:
+      "Deletes a specific process version. This action cannot be undone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        versionId: {
+          type: "string",
+          description: "Version ID",
+        },
+      },
+      required: ["processId", "versionId"],
+    },
+  },
+  {
+    name: processesToolNames.getProcessVersionAliases,
+    title: "Get Process Version Aliases",
+    description:
+      "Retrieves a paginated list of version aliases for a specific process.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        versionId: {
+          type: "string",
+          description: "Version ID",
+        },
+        page: {
+          type: "integer",
+          format: "int32",
+          default: 0,
+          description: "Page number",
+        },
+        limit: {
+          type: "integer",
+          format: "int32",
+          default: 10,
+          description: "Amount of items to retrieve",
+        },
+      },
+      required: ["processId"],
+    },
+  },
+  {
+    name: processesToolNames.createProcessVersionAlias,
+    title: "Create Process Version Alias",
+    description: "Creates a new alias for a process version.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        name: {
+          type: "string",
+          description: "Alias name",
+        },
+        versionId: {
+          type: "string",
+          description: "The version id of the process being aliased",
+        },
+      },
+      required: ["processId", "name", "versionId"],
+    },
+  },
+  {
+    name: processesToolNames.getProcessVersionAlias,
+    title: "Get Process Version Alias",
+    description:
+      "Retrieves detailed information about a specific process version alias.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        aliasId: {
+          type: "string",
+          description: "Alias ID",
+        },
+      },
+      required: ["processId", "aliasId"],
+    },
+  },
+  {
+    name: processesToolNames.deleteProcessVersionAlias,
+    title: "Delete Process Version Alias",
+    description:
+      "Permanently deletes a process version alias. This action cannot be undone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        aliasId: {
+          type: "string",
+          description: "Alias ID",
+        },
+      },
+      required: ["processId", "aliasId"],
+    },
+  },
+  {
+    name: processesToolNames.updateProcessVersionAlias,
+    title: "Update Process Version Alias",
+    description:
+      "Updates an existing process version alias with new configuration. All provided fields will replace the existing values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        processId: {
+          type: "string",
+          description: "Process ID",
+        },
+        aliasId: {
+          type: "string",
+          description: "Alias ID",
+        },
+        name: {
+          type: "string",
+          description: "Alias name",
+        },
+        versionId: {
+          type: "string",
+          description: "The version id of the process being aliased",
+        },
+      },
+      required: ["processId", "aliasId"],
     },
   },
 ];
