@@ -61,6 +61,14 @@ import {
   UpdateProcessSchema,
   DeleteProcessSchema,
   GetProcessVersionsSchema,
+  PublishProcessVersionSchema,
+  GetProcessVersionSchema,
+  DeleteProcessVersionSchema,
+  GetProcessVersionAliasesSchema,
+  CreateProcessVersionAliasSchema,
+  GetProcessVersionAliasSchema,
+  DeleteProcessVersionAliasSchema,
+  UpdateProcessVersionAliasSchema,
   ExecuteProcessAsyncSchema,
   ExecuteProcessSyncSchema,
   ScheduleProcessSchema,
@@ -745,6 +753,139 @@ class YepCodeMcpServer extends Server {
                 }
               );
               return versions;
+            }
+          );
+
+        case processesToolNames.publishProcessVersion:
+          return this.handleToolRequest(
+            PublishProcessVersionSchema,
+            request,
+            async (data) => {
+              const {
+                processId,
+                tag,
+                readme,
+                comment,
+                sourceCode,
+                parametersSchema,
+              } = data;
+              const publishData: any = {};
+              if (tag !== undefined) publishData.tag = tag;
+              if (readme !== undefined) publishData.readme = readme;
+              if (comment !== undefined) publishData.comment = comment;
+              if (sourceCode !== undefined) publishData.sourceCode = sourceCode;
+              if (parametersSchema !== undefined)
+                publishData.parametersSchema = parametersSchema;
+              const version = await this.yepCodeApi.publishProcessVersion(
+                processId,
+                publishData
+              );
+              return version;
+            }
+          );
+
+        case processesToolNames.getProcessVersion:
+          return this.handleToolRequest(
+            GetProcessVersionSchema,
+            request,
+            async (data) => {
+              const version = await this.yepCodeApi.getProcessVersion(
+                data.processId,
+                data.versionId
+              );
+              return version;
+            }
+          );
+
+        case processesToolNames.deleteProcessVersion:
+          return this.handleToolRequest(
+            DeleteProcessVersionSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteProcessVersion(
+                data.processId,
+                data.versionId
+              );
+              return {
+                result: `Process version ${data.versionId} deleted successfully`,
+              };
+            }
+          );
+
+        case processesToolNames.getProcessVersionAliases:
+          return this.handleToolRequest(
+            GetProcessVersionAliasesSchema,
+            request,
+            async (data) => {
+              const aliases = await this.yepCodeApi.getProcessVersionAliases(
+                data.processId,
+                {
+                  versionId: data.versionId,
+                  page: data.page,
+                  limit: data.limit,
+                }
+              );
+              return aliases;
+            }
+          );
+
+        case processesToolNames.createProcessVersionAlias:
+          return this.handleToolRequest(
+            CreateProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              const { processId, ...aliasData } = data;
+              const alias = await this.yepCodeApi.createProcessVersionAlias(
+                processId,
+                aliasData
+              );
+              return alias;
+            }
+          );
+
+        case processesToolNames.getProcessVersionAlias:
+          return this.handleToolRequest(
+            GetProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              const alias = await this.yepCodeApi.getProcessVersionAlias(
+                data.processId,
+                data.aliasId
+              );
+              return alias;
+            }
+          );
+
+        case processesToolNames.deleteProcessVersionAlias:
+          return this.handleToolRequest(
+            DeleteProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteProcessVersionAlias(
+                data.processId,
+                data.aliasId
+              );
+              return {
+                result: `Process version alias ${data.aliasId} deleted successfully`,
+              };
+            }
+          );
+
+        case processesToolNames.updateProcessVersionAlias:
+          return this.handleToolRequest(
+            UpdateProcessVersionAliasSchema,
+            request,
+            async (data) => {
+              const { processId, aliasId, name, versionId } = data;
+              const updateData: any = {};
+              if (name !== undefined) updateData.name = name;
+              if (versionId !== undefined) updateData.versionId = versionId;
+              const alias = await this.yepCodeApi.updateProcessVersionAlias(
+                processId,
+                aliasId,
+                updateData
+              );
+              return alias;
             }
           );
 
