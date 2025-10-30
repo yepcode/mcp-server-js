@@ -50,6 +50,7 @@ import {
   PauseScheduleSchema,
   ResumeScheduleSchema,
   DeleteScheduleSchema,
+  UpdateScheduleSchema,
   schedulesToolDefinitions,
   schedulesToolNames,
 } from "./tools/schedules-tool-definitions.js";
@@ -603,6 +604,52 @@ class YepCodeMcpServer extends Server {
             async (data) => {
               await this.yepCodeApi.deleteSchedule(data.id);
               return { result: `Schedule ${data.id} deleted successfully` };
+            }
+          );
+
+        case schedulesToolNames.updateSchedule:
+          return this.handleToolRequest(
+            UpdateScheduleSchema,
+            request,
+            async (data) => {
+              const { id, ...updateData } = data;
+
+              // Build the update object, handling input.parameters if it's a JSON string
+              const updatePayload: any = {};
+              if (updateData.cron !== undefined) {
+                updatePayload.cron = updateData.cron;
+              }
+              if (updateData.dateTime !== undefined) {
+                updatePayload.dateTime = updateData.dateTime;
+              }
+              if (updateData.allowConcurrentExecutions !== undefined) {
+                updatePayload.allowConcurrentExecutions =
+                  updateData.allowConcurrentExecutions;
+              }
+              if (updateData.input !== undefined) {
+                updatePayload.input = { ...updateData.input };
+                // Parse parameters if it's a JSON string
+                if (
+                  updatePayload.input.parameters &&
+                  typeof updatePayload.input.parameters === "string"
+                ) {
+                  try {
+                    updatePayload.input.parameters = JSON.parse(
+                      updatePayload.input.parameters
+                    );
+                  } catch (error) {
+                    throw new Error(
+                      `Invalid JSON string for parameters: ${error}`
+                    );
+                  }
+                }
+              }
+
+              const schedule = await this.yepCodeApi.updateSchedule(
+                id,
+                updatePayload
+              );
+              return schedule;
             }
           );
 

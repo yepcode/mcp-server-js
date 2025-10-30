@@ -55,6 +55,73 @@ export const DeleteScheduleSchema = z.object({
     .describe("Unique identifier (UUID) of the scheduled process to delete"),
 });
 
+// Schema for updating a schedule
+export const UpdateScheduleSchema = z.object({
+  id: z
+    .string()
+    .describe("Unique identifier (UUID) of the scheduled process to update"),
+  cron: z
+    .string()
+    .optional()
+    .describe(
+      "Cron expression defining when the process should be executed. Uses standard cron syntax (minute hour day month dayOfWeek)."
+    ),
+  dateTime: z
+    .string()
+    .datetime()
+    .optional()
+    .describe(
+      "Specific date and time when the process should be executed. Used for one-time scheduled executions (ISO 8601 format)."
+    ),
+  allowConcurrentExecutions: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether multiple executions of the same process can run concurrently. If false, new executions will be queued if one is already running."
+    ),
+  input: z
+    .object({
+      parameters: z
+        .string()
+        .optional()
+        .describe(
+          "JSON string containing the input parameters for the process execution. Must match the process parameter schema."
+        ),
+      tag: z
+        .string()
+        .optional()
+        .describe("A version tag or an alias of the version"),
+      comment: z
+        .string()
+        .optional()
+        .describe(
+          "Optional comment or description for this execution. Useful for tracking and debugging purposes."
+        ),
+      settings: z
+        .object({
+          agentPoolSlug: z
+            .string()
+            .optional()
+            .describe("Agent pool where to execute"),
+          callbackUrl: z
+            .string()
+            .url()
+            .optional()
+            .describe(
+              "URL to receive execution results upon completion (success or failure)"
+            ),
+        })
+        .optional()
+        .describe(
+          "Execution-specific settings and configuration options. Overrides default process settings for this execution."
+        ),
+    })
+    .optional()
+    .describe(
+      "Input parameters and settings for the scheduled process execution. Defines what parameters will be passed to the process when it runs."
+    ),
+});
+
 // Tool names
 export const schedulesToolNames = {
   getSchedules: "get_schedules",
@@ -62,6 +129,7 @@ export const schedulesToolNames = {
   pauseSchedule: "pause_schedule",
   resumeSchedule: "resume_schedule",
   deleteSchedule: "delete_schedule",
+  updateSchedule: "update_schedule",
 } as const;
 
 // Tool definitions
@@ -162,6 +230,77 @@ export const schedulesToolDefinitions = [
           type: "string",
           description:
             "Unique identifier (UUID) of the scheduled process to delete",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: schedulesToolNames.updateSchedule,
+    title: "Update Scheduled Process",
+    description:
+      "Updates an existing scheduled process with new configuration, schedule settings, or parameters. All provided fields will replace the existing values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description:
+            "Unique identifier (UUID) of the scheduled process to update",
+        },
+        cron: {
+          type: "string",
+          description:
+            "Cron expression defining when the process should be executed. Uses standard cron syntax (minute hour day month dayOfWeek).",
+        },
+        dateTime: {
+          type: "string",
+          format: "date-time",
+          description:
+            "Specific date and time when the process should be executed. Used for one-time scheduled executions (ISO 8601 format).",
+        },
+        allowConcurrentExecutions: {
+          type: "boolean",
+          description:
+            "Whether multiple executions of the same process can run concurrently. If false, new executions will be queued if one is already running.",
+        },
+        input: {
+          type: "object",
+          description:
+            "Input parameters and settings for the scheduled process execution. Defines what parameters will be passed to the process when it runs.",
+          properties: {
+            parameters: {
+              type: "string",
+              description:
+                "JSON string containing the input parameters for the process execution. Must match the process parameter schema.",
+            },
+            tag: {
+              type: "string",
+              description: "A version tag or an alias of the version",
+            },
+            comment: {
+              type: "string",
+              description:
+                "Optional comment or description for this execution. Useful for tracking and debugging purposes.",
+            },
+            settings: {
+              type: "object",
+              description:
+                "Execution-specific settings and configuration options. Overrides default process settings for this execution.",
+              properties: {
+                agentPoolSlug: {
+                  type: "string",
+                  description: "Agent pool where to execute",
+                },
+                callbackUrl: {
+                  type: "string",
+                  format: "uri",
+                  description:
+                    "URL to receive execution results upon completion (success or failure)",
+                },
+              },
+            },
+          },
         },
       },
       required: ["id"],
