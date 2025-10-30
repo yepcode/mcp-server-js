@@ -104,6 +104,14 @@ import {
   modulesWithVersionsToolDefinitions,
   modulesToolNames,
 } from "./tools/modules-tool-definitions.js";
+import {
+  GetTokenSchema,
+  GetAllServiceAccountsSchema,
+  CreateServiceAccountSchema,
+  DeleteServiceAccountSchema,
+  authToolDefinitions,
+  authToolNames,
+} from "./tools/auth-tool-definitions.js";
 
 const RUN_PROCESS_TOOL_NAME_PREFIX = "yc_";
 const RUN_PROCESS_TOOL_TAG = "mcp-tool";
@@ -295,6 +303,7 @@ class YepCodeMcpServer extends Server {
       if (this.tools.includes(API_TOOL_TAGS.FULL)) {
         tools.push(...processesWithVersionsToolDefinitions);
         tools.push(...modulesWithVersionsToolDefinitions);
+        tools.push(...authToolDefinitions);
       }
       if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();
@@ -1212,6 +1221,53 @@ class YepCodeMcpServer extends Server {
                 updateData
               );
               return alias;
+            }
+          );
+
+        case authToolNames.getToken:
+          return this.handleToolRequest(
+            GetTokenSchema,
+            request,
+            async (data) => {
+              const token = await this.yepCodeApi.getToken(data.apiToken);
+              return token;
+            }
+          );
+
+        case authToolNames.getAllServiceAccounts:
+          return this.handleToolRequest(
+            GetAllServiceAccountsSchema,
+            request,
+            async () => {
+              const serviceAccounts =
+                await this.yepCodeApi.getAllServiceAccounts();
+              return serviceAccounts;
+            }
+          );
+
+        case authToolNames.createServiceAccount:
+          return this.handleToolRequest(
+            CreateServiceAccountSchema,
+            request,
+            async (data) => {
+              const serviceAccount = await this.yepCodeApi.createServiceAccount(
+                {
+                  name: data.name,
+                }
+              );
+              return serviceAccount;
+            }
+          );
+
+        case authToolNames.deleteServiceAccount:
+          return this.handleToolRequest(
+            DeleteServiceAccountSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteServiceAccount(data.id);
+              return {
+                result: `Service account ${data.id} deleted successfully`,
+              };
             }
           );
 
