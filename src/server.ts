@@ -81,11 +81,17 @@ import {
   GetModulesSchema,
   CreateModuleSchema,
   GetModuleSchema,
+  UpdateModuleSchema,
   DeleteModuleSchema,
   GetModuleVersionsSchema,
+  PublishModuleVersionSchema,
   GetModuleVersionSchema,
   DeleteModuleVersionSchema,
   GetModuleAliasesSchema,
+  CreateModuleVersionAliasSchema,
+  GetModuleVersionAliasSchema,
+  DeleteModuleVersionAliasSchema,
+  UpdateModuleVersionAliasSchema,
   modulesToolDefinitions,
   modulesWithVersionsToolDefinitions,
   modulesToolNames,
@@ -917,6 +923,17 @@ class YepCodeMcpServer extends Server {
             }
           );
 
+        case modulesToolNames.updateModule:
+          return this.handleToolRequest(
+            UpdateModuleSchema,
+            request,
+            async (data) => {
+              const { id, ...updateData } = data;
+              const module = await this.yepCodeApi.updateModule(id, updateData);
+              return module;
+            }
+          );
+
         case modulesToolNames.deleteModule:
           return this.handleToolRequest(
             DeleteModuleSchema,
@@ -940,6 +957,24 @@ class YepCodeMcpServer extends Server {
                 }
               );
               return versions;
+            }
+          );
+
+        case modulesToolNames.publishModuleVersion:
+          return this.handleToolRequest(
+            PublishModuleVersionSchema,
+            request,
+            async (data) => {
+              const { moduleId, tag, comment, sourceCode } = data;
+              const publishData: any = {};
+              if (tag !== undefined) publishData.tag = tag;
+              if (comment !== undefined) publishData.comment = comment;
+              if (sourceCode !== undefined) publishData.sourceCode = sourceCode;
+              const version = await this.yepCodeApi.publishModuleVersion(
+                moduleId,
+                publishData
+              );
+              return version;
             }
           );
 
@@ -976,6 +1011,66 @@ class YepCodeMcpServer extends Server {
               throw new Error(
                 "getModuleAliases method not available in YepCodeApi"
               );
+            }
+          );
+
+        case modulesToolNames.createModuleVersionAlias:
+          return this.handleToolRequest(
+            CreateModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              const { moduleId, ...aliasData } = data;
+              const alias = await this.yepCodeApi.createModuleVersionAlias(
+                moduleId,
+                aliasData
+              );
+              return alias;
+            }
+          );
+
+        case modulesToolNames.getModuleVersionAlias:
+          return this.handleToolRequest(
+            GetModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              const alias = await this.yepCodeApi.getModuleVersionAlias(
+                data.moduleId,
+                data.aliasId
+              );
+              return alias;
+            }
+          );
+
+        case modulesToolNames.deleteModuleVersionAlias:
+          return this.handleToolRequest(
+            DeleteModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              await this.yepCodeApi.deleteModuleVersionAlias(
+                data.moduleId,
+                data.aliasId
+              );
+              return {
+                result: `Module version alias ${data.aliasId} deleted successfully`,
+              };
+            }
+          );
+
+        case modulesToolNames.updateModuleVersionAlias:
+          return this.handleToolRequest(
+            UpdateModuleVersionAliasSchema,
+            request,
+            async (data) => {
+              const { moduleId, aliasId, name, versionId } = data;
+              const updateData: any = {};
+              if (name !== undefined) updateData.name = name;
+              if (versionId !== undefined) updateData.versionId = versionId;
+              const alias = await this.yepCodeApi.updateModuleVersionAlias(
+                moduleId,
+                aliasId,
+                updateData
+              );
+              return alias;
             }
           );
 

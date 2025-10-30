@@ -38,6 +38,27 @@ export const GetModuleSchema = z.object({
     ),
 });
 
+// Schema for updating a module
+export const UpdateModuleSchema = z.object({
+  id: z
+    .string()
+    .describe(
+      "Unique identifier (UUID) of the script library module to update"
+    ),
+  name: z
+    .string()
+    .optional()
+    .describe(
+      "The name of the script library. Must not have spaces, dashes and dots are allowed"
+    ),
+  sourceCode: z
+    .string()
+    .optional()
+    .describe(
+      "The updated source code of the script library module. This is the reusable code that can be imported by processes."
+    ),
+});
+
 // Schema for deleting a module
 export const DeleteModuleSchema = z.object({
   id: z
@@ -73,6 +94,14 @@ export const DeleteModuleVersionSchema = z.object({
   versionId: z.string().describe("Version ID"),
 });
 
+// Schema for publishing a module version
+export const PublishModuleVersionSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  tag: z.string().optional().describe("Version tag"),
+  comment: z.string().optional().describe("Version comment"),
+  sourceCode: z.string().optional().describe("Module source code"),
+});
+
 // Schema for getting module aliases
 export const GetModuleAliasesSchema = z.object({
   moduleId: z.string().describe("Module ID"),
@@ -88,16 +117,54 @@ export const GetModuleAliasesSchema = z.object({
     .describe("Amount of items to retrieve"),
 });
 
+// Schema for creating a module version alias
+export const CreateModuleVersionAliasSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  name: z.string().describe("Alias name"),
+  versionId: z
+    .string()
+    .describe("The version id of the script library being aliased"),
+});
+
+// Schema for getting a specific module version alias
+export const GetModuleVersionAliasSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  aliasId: z.string().describe("Alias ID"),
+});
+
+// Schema for deleting a module version alias
+export const DeleteModuleVersionAliasSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  aliasId: z.string().describe("Alias ID"),
+});
+
+// Schema for updating a module version alias
+export const UpdateModuleVersionAliasSchema = z.object({
+  moduleId: z.string().describe("Module ID"),
+  aliasId: z.string().describe("Alias ID"),
+  name: z.string().optional().describe("Alias name"),
+  versionId: z
+    .string()
+    .optional()
+    .describe("The version id of the script library being aliased"),
+});
+
 // Tool names
 export const modulesToolNames = {
   getModules: "get_modules",
   createModule: "create_module",
   getModule: "get_module",
+  updateModule: "update_module",
   deleteModule: "delete_module",
   getModuleVersions: "get_module_versions",
+  publishModuleVersion: "publish_module_version",
   getModuleVersion: "get_module_version",
   deleteModuleVersion: "delete_module_version",
   getModuleAliases: "get_module_aliases",
+  createModuleVersionAlias: "create_module_version_alias",
+  getModuleVersionAlias: "get_module_version_alias",
+  deleteModuleVersionAlias: "delete_module_version_alias",
+  updateModuleVersionAlias: "update_module_version_alias",
 } as const;
 
 // Tool definitions
@@ -181,10 +248,37 @@ export const modulesToolDefinitions = [
     },
   },
   {
+    name: modulesToolNames.updateModule,
+    title: "Update Module",
+    description:
+      "Updates an existing script library module with new source code or metadata. All provided fields will replace the existing values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: {
+          type: "string",
+          description:
+            "Unique identifier (UUID) of the script library module to update",
+        },
+        name: {
+          type: "string",
+          description:
+            "The name of the script library. Must not have spaces, dashes and dots are allowed",
+        },
+        sourceCode: {
+          type: "string",
+          description:
+            "The updated source code of the script library module. This is the reusable code that can be imported by processes.",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
     name: modulesToolNames.deleteModule,
     title: "Delete Module",
     description:
-      "Deletes a script library module and all its versions. This action cannot be undone.",
+      "Permanently deletes a script library module. This action cannot be undone and may affect processes that import this module.",
     inputSchema: {
       type: "object",
       properties: {
@@ -298,6 +392,116 @@ export const modulesWithVersionsToolDefinitions = [
         },
       },
       required: ["moduleId"],
+    },
+  },
+  {
+    name: modulesToolNames.publishModuleVersion,
+    title: "Publish Module Version",
+    description: "Publishes a new version of a module.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        tag: {
+          type: "string",
+          description: "Version tag",
+        },
+        comment: {
+          type: "string",
+          description: "Version comment",
+        },
+        sourceCode: {
+          type: "string",
+          description: "Module source code",
+        },
+      },
+      required: ["moduleId"],
+    },
+  },
+  {
+    name: modulesToolNames.createModuleVersionAlias,
+    title: "Create Module Version Alias",
+    description: "Creates a new alias for a module version.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        name: {
+          type: "string",
+          description: "Alias name",
+        },
+        versionId: {
+          type: "string",
+          description: "The version id of the script library being aliased",
+        },
+      },
+      required: ["moduleId", "name", "versionId"],
+    },
+  },
+  {
+    name: modulesToolNames.getModuleVersionAlias,
+    title: "Get Module Version Alias",
+    description:
+      "Retrieves detailed information about a specific module version alias.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        aliasId: {
+          type: "string",
+          description: "Alias ID",
+        },
+      },
+      required: ["moduleId", "aliasId"],
+    },
+  },
+  {
+    name: modulesToolNames.deleteModuleVersionAlias,
+    title: "Delete Module Version Alias",
+    description:
+      "Permanently deletes a module version alias. This action cannot be undone.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        aliasId: {
+          type: "string",
+          description: "Alias ID",
+        },
+      },
+      required: ["moduleId", "aliasId"],
+    },
+  },
+  {
+    name: modulesToolNames.updateModuleVersionAlias,
+    title: "Update Module Version Alias",
+    description:
+      "Updates an existing module version alias with new configuration. All provided fields will replace the existing values.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
+        aliasId: {
+          type: "string",
+          description: "Alias ID",
+        },
+        name: {
+          type: "string",
+          description: "Alias name",
+        },
+        versionId: {
+          type: "string",
+          description: "The version id of the script library being aliased",
+        },
+      },
+      required: ["moduleId", "aliasId"],
     },
   },
 ];
