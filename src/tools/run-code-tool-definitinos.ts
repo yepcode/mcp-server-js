@@ -19,8 +19,34 @@ export const RunCodeOptionsSchema = z.object({
     .describe(
       "The language to be used to run the code. We support javascript or python."
     ),
-  comment: z.string().optional(),
-  settings: z.record(z.unknown()).optional(),
+  removeOnDone: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether to remove the process source code after execution. If false, the code will be kept for audit purposes. By default, code is removed after execution."
+    ),
+  comment: z
+    .string()
+    .optional()
+    .describe(
+      "A comment or description for this execution. Useful for tracking, debugging, and providing context about the execution."
+    ),
+  manifest: z
+    .any()
+    .optional()
+    .describe(
+      "Process manifest configuration. Contains metadata and configuration for the process deployment and execution, such as dependencies, environment setup, and other deployment-related settings."
+    ),
+  parameters: z
+    .any()
+    .optional()
+    .describe(
+      "Input parameters to be passed to the code execution. These parameters can be accessed within your code and must match the expected parameter schema if defined."
+    ),
+  tag: z
+    .string()
+    .optional()
+    .describe("A version tag or an alias of the version"),
 });
 
 export const getCodingRules = async (): Promise<string> => {
