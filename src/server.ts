@@ -330,7 +330,7 @@ class YepCodeMcpServer extends Server {
             } else {
               delete inputSchema.properties.parameters;
             }
-            let toolName = process.slug;
+            let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
             if (toolName.length > 60) {
               toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
             }
