@@ -1058,6 +1058,8 @@ class YepCodeMcpServer extends Server {
             async (data) => {
               const module = await this.yepCodeApi.createModule({
                 name: data.name,
+                programmingLanguage: data.programmingLanguage,
+                sourceCode: data.sourceCode,
               });
               return module;
             }

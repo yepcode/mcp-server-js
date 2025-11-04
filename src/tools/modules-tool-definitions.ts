@@ -22,11 +22,10 @@ export const GetModulesSchema = z.object({
 // Schema for creating a module
 export const CreateModuleSchema = z.object({
   name: z.string().describe("Module name"),
-  description: z.string().optional().describe("Module description"),
-  code: z.string().describe("Module source code"),
-  language: z.enum(["javascript", "python"]).describe("Programming language"),
-  tags: z.array(z.string()).optional().describe("Module tags"),
-  settings: z.record(z.any()).optional().describe("Module settings"),
+  programmingLanguage: z
+    .enum(["JAVASCRIPT", "PYTHON"])
+    .describe("Programming language"),
+  sourceCode: z.string().describe("Module source code"),
 });
 
 // Schema for getting a specific module
@@ -204,30 +203,17 @@ export const modulesToolDefinitions = [
           type: "string",
           description: "Module name",
         },
-        description: {
+        programmingLanguage: {
           type: "string",
-          description: "Module description",
+          enum: ["JAVASCRIPT", "PYTHON"],
+          description: "Programming language",
         },
-        code: {
+        sourceCode: {
           type: "string",
           description: "Module source code",
         },
-        language: {
-          type: "string",
-          enum: ["javascript", "python"],
-          description: "Programming language",
-        },
-        tags: {
-          type: "array",
-          items: { type: "string" },
-          description: "Module tags",
-        },
-        settings: {
-          type: "object",
-          description: "Module settings",
-        },
       },
-      required: ["name", "code", "language"],
+      required: ["name", "programmingLanguage", "sourceCode"],
     },
   },
   {
@@ -452,6 +438,10 @@ export const modulesWithVersionsToolDefinitions = [
     inputSchema: {
       type: "object",
       properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
         aliasId: {
           type: "string",
           description: "Alias ID",
@@ -468,6 +458,10 @@ export const modulesWithVersionsToolDefinitions = [
     inputSchema: {
       type: "object",
       properties: {
+        moduleId: {
+          type: "string",
+          description: "Module ID",
+        },
         aliasId: {
           type: "string",
           description: "Alias ID",
