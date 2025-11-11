@@ -43,10 +43,6 @@ export const RunCodeOptionsSchema = z.object({
     .describe(
       "Input parameters to be passed to the code execution. These parameters can be accessed within your code and must match the expected parameter schema if defined."
     ),
-  tag: z
-    .string()
-    .optional()
-    .describe("A version tag or an alias of the version"),
 });
 
 export const getCodingRules = async (): Promise<string> => {
