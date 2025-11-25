@@ -121,6 +121,21 @@ const API_TOOL_TAGS = {
   FULL: "yc_api_full",
 };
 
+const DEFAULT_API_TOOLS = [
+  ...storageToolDefinitions,
+  ...variablesToolDefinitions,
+  ...schedulesToolDefinitions,
+  ...processesToolDefinitions,
+  ...executionsToolDefinitions,
+  ...modulesToolDefinitions,
+];
+
+const ADDITIONAL_API_TOOLS = [
+  ...processesWithVersionsToolDefinitions,
+  ...modulesWithVersionsToolDefinitions,
+  ...authToolDefinitions,
+];
+
 const DEFAULT_TOOL_TAGS = [RUN_CODE_TOOL_TAG, RUN_PROCESS_TOOL_TAG];
 
 dotenv.config();
@@ -293,17 +308,15 @@ class YepCodeMcpServer extends Server {
         this.tools.includes(API_TOOL_TAGS.DEFAULT) ||
         this.tools.includes(API_TOOL_TAGS.FULL)
       ) {
-        tools.push(...storageToolDefinitions);
-        tools.push(...variablesToolDefinitions);
-        tools.push(...schedulesToolDefinitions);
-        tools.push(...processesToolDefinitions);
-        tools.push(...executionsToolDefinitions);
-        tools.push(...modulesToolDefinitions);
+        tools.push(...DEFAULT_API_TOOLS);
       }
       if (this.tools.includes(API_TOOL_TAGS.FULL)) {
-        tools.push(...processesWithVersionsToolDefinitions);
-        tools.push(...modulesWithVersionsToolDefinitions);
-        tools.push(...authToolDefinitions);
+        tools.push(...ADDITIONAL_API_TOOLS);
+      }
+      for (const tool of [...DEFAULT_API_TOOLS, ...ADDITIONAL_API_TOOLS]) {
+        if (this.tools.includes(tool.name)) {
+          tools.push(tool);
+        }
       }
       if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();
