@@ -162,6 +162,7 @@ You can control which tools are enabled by setting the `YEPCODE_MCP_TOOLS` envir
 - `run_code`: Enables the code execution tool
 - `yc_api`: Enables all basic API management tools (processes, schedules, variables, storage, executions, modules)
 - `yc_api_full`: Enables all API management tools including version-related tools (extends `yc_api` with additional process and module version management tools)
+- any specific API tool name (e.g., `execute_process_sync`, `get_execution`,...)
 
 **Process tags:**
 - Any tag used in your YepCode processes (e.g., `mcp-tool`, `core`, `automation`, etc.)
