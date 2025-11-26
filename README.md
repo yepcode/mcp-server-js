@@ -376,6 +376,7 @@ The `yc_api_full` tag includes everything from `yc_api` plus additional tools fo
 - `pause_schedule` - Pause a scheduled process
 - `resume_schedule` - Resume a paused schedule
 - `delete_schedule` - Delete a schedule
+- `update_schedule` - Update a scheduled process
 
 **Variables Management:**
 - `get_variables` - List team variables
