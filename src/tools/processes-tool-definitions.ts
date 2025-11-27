@@ -744,11 +744,6 @@ export const processesToolDefinitions = [
           description:
             "Unique identifier of the process to schedule (UUID or slug)",
         },
-        type: {
-          type: "string",
-          enum: ["PERIODIC", "ONCE"],
-          description: "Schedule type",
-        },
         cron: {
           type: "string",
           description: "Cron expression for PERIODIC schedules",
