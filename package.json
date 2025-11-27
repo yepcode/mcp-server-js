@@ -1,6 +1,6 @@
 {
   "name": "@yepcode/mcp-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MCP server for YepCode",
   "main": "dist/index.js",
   "type": "module",
@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
-    "@yepcode/run": "^1.11.0",
+    "@yepcode/run": "^1.11.1",
     "dotenv": "^16.4.7",
     "zod": "^3.24.2"
   },
