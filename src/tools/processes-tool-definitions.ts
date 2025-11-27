@@ -339,17 +339,66 @@ export const ScheduleProcessSchema = z.object({
   identifier: z
     .string()
     .describe("Unique identifier of the process to schedule (UUID or slug)"),
-  parameters: z.record(z.any()).optional().describe("Process parameters"),
-  type: z.enum(["PERIODIC", "ONCE"]).describe("Schedule type"),
   cron: z
     .string()
     .optional()
-    .describe("Cron expression for PERIODIC schedules"),
+    .describe(
+      "Cron expression defining when the process should be executed. Uses standard cron syntax (minute hour day month dayOfWeek)."
+    ),
   dateTime: z
     .string()
+    .datetime()
     .optional()
-    .describe("Date and time for ONCE schedules (ISO format)"),
-  settings: z.record(z.any()).optional().describe("Schedule settings"),
+    .describe(
+      "Specific date and time when the process should be executed. Used for one-time scheduled executions (ISO 8601 format)."
+    ),
+  allowConcurrentExecutions: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether multiple executions of the same process can run concurrently. If false, new executions will be queued if one is already running."
+    ),
+  input: z
+    .object({
+      parameters: z
+        .string()
+        .optional()
+        .describe(
+          "JSON string containing the input parameters for the process execution. Must match the process parameter schema."
+        ),
+      tag: z
+        .string()
+        .optional()
+        .describe("A version tag or an alias of the version"),
+      comment: z
+        .string()
+        .optional()
+        .describe(
+          "Optional comment or description for this execution. Useful for tracking and debugging purposes."
+        ),
+      settings: z
+        .object({
+          agentPoolSlug: z
+            .string()
+            .optional()
+            .describe("Agent pool where to execute"),
+          callbackUrl: z
+            .string()
+            .url()
+            .optional()
+            .describe(
+              "URL to receive execution results upon completion (success or failure)"
+            ),
+        })
+        .optional()
+        .describe(
+          "Execution-specific settings and configuration options. Overrides default process settings for this execution."
+        ),
+    })
+    .optional()
+    .describe(
+      "Input parameters and settings for the scheduled process execution. Defines what parameters will be passed to the process when it runs."
+    ),
 });
 
 // Tool names
@@ -695,10 +744,6 @@ export const processesToolDefinitions = [
           description:
             "Unique identifier of the process to schedule (UUID or slug)",
         },
-        parameters: {
-          type: "object",
-          description: "Process parameters",
-        },
         type: {
           type: "string",
           enum: ["PERIODIC", "ONCE"],
@@ -710,11 +755,51 @@ export const processesToolDefinitions = [
         },
         dateTime: {
           type: "string",
+          format: "date-time",
           description: "Date and time for ONCE schedules (ISO format)",
         },
-        settings: {
+        allowConcurrentExecutions: {
+          type: "boolean",
+          description:
+            "Whether multiple executions of the same process can run concurrently. If false, new executions will be queued if one is already running.",
+        },
+        input: {
           type: "object",
-          description: "Schedule settings",
+          description:
+            "Input parameters and settings for the scheduled process execution. Defines what parameters will be passed to the process when it runs.",
+          properties: {
+            parameters: {
+              type: "string",
+              description:
+                "JSON string containing the input parameters for the process execution. Must match the process parameter schema.",
+            },
+            tag: {
+              type: "string",
+              description: "A version tag or an alias of the version",
+            },
+            comment: {
+              type: "string",
+              description:
+                "Optional comment or description for this execution. Useful for tracking and debugging purposes.",
+            },
+            settings: {
+              type: "object",
+              description:
+                "Execution-specific settings and configuration options. Overrides default process settings for this execution.",
+              properties: {
+                agentPoolSlug: {
+                  type: "string",
+                  description: "Agent pool where to execute",
+                },
+                callbackUrl: {
+                  type: "string",
+                  format: "uri",
+                  description:
+                    "URL to receive execution results upon completion (success or failure)",
+                },
+              },
+            },
+          },
         },
       },
       required: ["identifier", "type"],
