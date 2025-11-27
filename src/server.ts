@@ -982,12 +982,32 @@ class YepCodeMcpServer extends Server {
             ScheduleProcessSchema,
             request,
             async (data) => {
+              const { identifier, ...rest } = data;
+
+              const payload: any = {
+                ...rest,
+              };
+              if (payload.input !== undefined) {
+                // Parse parameters if it's a JSON string
+                if (
+                  payload.input.parameters &&
+                  typeof payload.input.parameters === "string"
+                ) {
+                  try {
+                    payload.input.parameters = JSON.parse(
+                      payload.input.parameters
+                    );
+                  } catch (error) {
+                    throw new Error(
+                      `Invalid JSON string for parameters: ${error}`
+                    );
+                  }
+                }
+              }
+
               const schedule = await this.yepCodeApi.createSchedule(
                 data.identifier,
-                {
-                  cron: data.cron,
-                  dateTime: data.dateTime,
-                }
+                payload
               );
               return schedule;
             }
