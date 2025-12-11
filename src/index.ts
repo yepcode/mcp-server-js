@@ -10,9 +10,11 @@ const logger = new Logger("StdioServer", { logsToStderr: true });
 const main = async (): Promise<void> => {
   let tools: string[] | undefined;
   let runCodeCleanup = false;
+  let skipCodingRules = false;
   if (process.env.YEPCODE_MCP_OPTIONS) {
     const mcpOptions = process.env.YEPCODE_MCP_OPTIONS.split(",");
     runCodeCleanup = mcpOptions.includes("runCodeCleanup");
+    skipCodingRules = mcpOptions.includes("skipCodingRules");
   }
   if (process.env.YEPCODE_MCP_TOOLS) {
     tools = process.env.YEPCODE_MCP_TOOLS.split(",").map((tool) => tool.trim());
@@ -20,7 +22,7 @@ const main = async (): Promise<void> => {
 
   const server = new YepCodeMcpServer(
     {},
-    { logsToStderr: true, tools, runCodeCleanup }
+    { logsToStderr: true, tools, runCodeCleanup, skipCodingRules }
   );
   try {
     const transport = new StdioServerTransport();

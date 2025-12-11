@@ -47,20 +47,30 @@ export const RunCodeOptionsSchema = z.object({
 
 export const getCodingRules = async (): Promise<string> => {
   try {
-    let rulesMdFile = await fetch(
-      "https://yepcode.io/docs/yepcode-coding-rules.md"
+    let jsRulesFile = await fetch(
+      "https://yepcode.io/docs/ai-rules/code/javascript.md"
     ).then((res) => res.text());
-    rulesMdFile = rulesMdFile.substring(
-      rulesMdFile.indexOf("## General Rules")
+    jsRulesFile = jsRulesFile.substring(
+      jsRulesFile.indexOf("# JavaScript Code Rules")
     );
-    rulesMdFile = rulesMdFile.replace(
+    jsRulesFile = jsRulesFile.replace(
       /(\[Section titled “.*”\]\(#.*\)\n)/g,
       ""
     );
-
+    let pythonRulesFile = await fetch(
+      "https://yepcode.io/docs/ai-rules/code/python.md"
+    ).then((res) => res.text());
+    pythonRulesFile = pythonRulesFile.substring(
+      pythonRulesFile.indexOf("# Python Code Rules")
+    );
+    pythonRulesFile = pythonRulesFile.replace(
+      /(\[Section titled “.*”\]\(#.*\)\n)/g,
+      ""
+    );
     return `Here you can find the general rules for YepCode coding:
 
-      ${rulesMdFile}`;
+${jsRulesFile}
+${pythonRulesFile}`;
   } catch (error) {
     return "";
   }
@@ -132,8 +142,14 @@ export const ExecutionResultSchema = z.object({
 
 export type ExecutionResultSchema = z.infer<typeof ExecutionResultSchema>;
 
-export const runCodeToolDefinitions = async (envVars: EnvVar[]) => {
-  const codingRules = await getCodingRules();
+export const runCodeToolDefinitions = async (
+  envVars: EnvVar[],
+  { skipCodingRules = false }: { skipCodingRules?: boolean } = {}
+) => {
+  let codingRules = "";
+  if (!skipCodingRules) {
+    codingRules = await getCodingRules();
+  }
   return [
     {
       name: runCodeToolNames.runCode,

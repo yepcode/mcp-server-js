@@ -151,6 +151,7 @@ Executes code in YepCode's secure environment.
 YepCode MCP server supports the following options:
 
 - `runCodeCleanup`: Skip the run_code cleanup. By default, run_code processes source code is removed after execution. If you want to keep it for audit purposes, you can use this option.
+- `skipCodingRules`: Skip including coding rules in the run_code tool definition. By default, JavaScript and Python coding rules from YepCode documentation are included in the tool schema to guide AI-generated code. If you want to skip this for faster tool initialization or smaller tool definitions, you can use this option.
 
 Options can be passed as a comma-separated list in the `YEPCODE_MCP_OPTIONS` environment variable.
 
@@ -189,7 +190,7 @@ If not specified, all built-in tools are enabled by default, but no process tool
       "args": ["-y", "@yepcode/mcp-server"],
       "env": {
         "YEPCODE_API_TOKEN": "your_api_token_here",
-        "YEPCODE_MCP_OPTIONS": "runCodeCleanup",
+        "YEPCODE_MCP_OPTIONS": "runCodeCleanup,skipCodingRules",
         "YEPCODE_MCP_TOOLS": "run_code,yc_api,mcp-tool,core"
       }
     }
