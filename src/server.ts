@@ -147,16 +147,19 @@ class YepCodeMcpServer extends Server {
   private logger: Logger;
   private tools: string[];
   private runCodeCleanup: boolean;
+  private skipCodingRules: boolean;
   constructor(
     config: YepCodeApiConfig,
     {
       logsToStderr = false,
       tools = DEFAULT_TOOL_TAGS,
       runCodeCleanup = false,
+      skipCodingRules = false,
     }: {
       logsToStderr?: boolean;
       tools?: string[];
       runCodeCleanup?: boolean;
+      skipCodingRules?: boolean;
     } = {}
   ) {
     super(
@@ -175,6 +178,7 @@ class YepCodeMcpServer extends Server {
 
     this.tools = tools;
     this.runCodeCleanup = runCodeCleanup;
+    this.skipCodingRules = skipCodingRules;
     this.setupHandlers();
     this.setupErrorHandling();
 
@@ -320,7 +324,11 @@ class YepCodeMcpServer extends Server {
       }
       if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
         const envVars = await this.yepCodeEnv.getEnvVars();
-        tools.push(...(await runCodeToolDefinitions(envVars)));
+        tools.push(
+          ...(await runCodeToolDefinitions(envVars, {
+            skipCodingRules: this.skipCodingRules,
+          }))
+        );
       }
 
       let page = 0;
