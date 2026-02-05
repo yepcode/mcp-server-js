@@ -1,6 +1,5 @@
 import { EnvVar } from "@yepcode/run";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 export const runCodeToolNames = {
   runCode: "run_code",
@@ -166,7 +165,7 @@ It supports JavaScript and Python, both with external dependencies (NPM or PyPI)
 *	To generate and output files, create them in the local execution storage, then upload them to YepCode Storage using the \`yepcode.storage\` helpers. Once uploaded, you can download them using the download storage MCP tool.
 
 Tip: First try to find a tool that matches your task, but if not available, try generating the code and running it here.`,
-      inputSchema: zodToJsonSchema(
+      inputSchema: z.toJSONSchema(
         buildRunCodeSchema(
           envVars.map((envVar) => envVar.key),
           codingRules

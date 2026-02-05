@@ -71,19 +71,19 @@ export const CreateProcessSchema = z.object({
       "JSON Schema defining the input parameters for the process. This schema is used to generate forms in the UI and validate input data."
     ),
   webhook: z
-    .record(z.any())
+    .record(z.any(), z.any())
     .optional()
     .describe(
       "Webhook configuration for the process. Defines how the process can be triggered via HTTP webhooks."
     ),
   manifest: z
-    .record(z.any())
+    .record(z.any(), z.any())
     .optional()
     .describe(
       "Process manifest configuration. Contains metadata and configuration for the process deployment and execution."
     ),
   settings: z
-    .record(z.any())
+    .record(z.any(), z.any())
     .optional()
     .describe(
       "Process settings and configuration options. Includes publication settings, form configurations, and dependencies."
@@ -152,19 +152,19 @@ export const UpdateProcessSchema = z.object({
       "The updated JSON Schema defining the input parameters for the process. This schema is used to generate forms in the UI and validate input data."
     ),
   webhook: z
-    .record(z.any())
+    .record(z.any(), z.any())
     .optional()
     .describe(
       "Updated webhook configuration for the process. Defines how the process can be triggered via HTTP webhooks."
     ),
   settings: z
-    .record(z.any())
+    .record(z.any(), z.any())
     .optional()
     .describe(
       "Updated process settings and configuration options. Includes publication settings, form configurations, and dependencies."
     ),
   manifest: z
-    .record(z.any())
+    .record(z.any(), z.any())
     .optional()
     .describe(
       "Updated process manifest configuration. Contains metadata and configuration for the process deployment and execution."
