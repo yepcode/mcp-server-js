@@ -305,77 +305,82 @@ class YepCodeMcpServer extends Server {
   private setupToolHandlers(): void {
     this.setRequestHandler(ListToolsRequestSchema, async () => {
       this.logger.info(`Handling ListTools request`);
-      const tools = [];
-      if (
-        this.tools.includes(API_TOOL_TAGS.DEFAULT) ||
-        this.tools.includes(API_TOOL_TAGS.FULL)
-      ) {
-        tools.push(...DEFAULT_API_TOOLS);
-      }
-      if (this.tools.includes(API_TOOL_TAGS.FULL)) {
-        tools.push(...ADDITIONAL_API_TOOLS);
-      }
-      for (const tool of [...DEFAULT_API_TOOLS, ...ADDITIONAL_API_TOOLS]) {
-        if (this.tools.includes(tool.name)) {
-          tools.push(tool);
+      try {
+        const tools = [];
+        if (
+          this.tools.includes(API_TOOL_TAGS.DEFAULT) ||
+          this.tools.includes(API_TOOL_TAGS.FULL)
+        ) {
+          tools.push(...DEFAULT_API_TOOLS);
         }
-      }
-      if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
-        const envVars = await this.yepCodeEnv.getEnvVars();
-        tools.push(
-          ...(await runCodeToolDefinitions(envVars, {
-            skipCodingRules: this.skipCodingRules,
-          }))
-        );
-      }
+        if (this.tools.includes(API_TOOL_TAGS.FULL)) {
+          tools.push(...ADDITIONAL_API_TOOLS);
+        }
+        for (const tool of [...DEFAULT_API_TOOLS, ...ADDITIONAL_API_TOOLS]) {
+          if (this.tools.includes(tool.name)) {
+            tools.push(tool);
+          }
+        }
+        if (this.tools.includes(RUN_CODE_TOOL_TAG)) {
+          const envVars = await this.yepCodeEnv.getEnvVars();
+          tools.push(
+            ...(await runCodeToolDefinitions(envVars, {
+              skipCodingRules: this.skipCodingRules,
+            }))
+          );
+        }
 
-      let page = 0;
-      let limit = 100;
-      while (true) {
-        const processes = await this.yepCodeApi.getProcesses({
-          page,
-          limit,
-          tags: this.tools,
-        });
-        this.logger.info(`Found ${processes?.data?.length} processes`);
-        if (!processes.data) {
-          break;
+        let page = 0;
+        let limit = 100;
+        while (true) {
+          const processes = await this.yepCodeApi.getProcesses({
+            page,
+            limit,
+            tags: this.tools,
+          });
+          this.logger.info(`Found ${processes?.data?.length} processes`);
+          if (!processes.data) {
+            break;
+          }
+          tools.push(
+            ...processes.data.map((process) => {
+              const inputSchema = z.toJSONSchema(RunProcessSchema) as any;
+              if (!isEmpty(process.parametersSchema)) {
+                inputSchema.properties.parameters = process.parametersSchema;
+              } else {
+                delete inputSchema.properties.parameters;
+              }
+              let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
+              if (toolName.length > 60) {
+                toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
+              }
+              return {
+                name: toolName,
+                title: process.name,
+                description: `${process.name}${
+                  process.description ? ` - ${process.description}` : ""
+                }`,
+                inputSchema,
+              };
+            })
+          );
+          if (!processes.hasNextPage) {
+            break;
+          }
+          page++;
         }
-        tools.push(
-          ...processes.data.map((process) => {
-            const inputSchema = z.toJSONSchema(RunProcessSchema) as any;
-            if (!isEmpty(process.parametersSchema)) {
-              inputSchema.properties.parameters = process.parametersSchema;
-            } else {
-              delete inputSchema.properties.parameters;
-            }
-            let toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.slug}`;
-            if (toolName.length > 60) {
-              toolName = `${RUN_PROCESS_TOOL_NAME_PREFIX}${process.id}`;
-            }
-            return {
-              name: toolName,
-              title: process.name,
-              description: `${process.name}${
-                process.description ? ` - ${process.description}` : ""
-              }`,
-              inputSchema,
-            };
-          })
+        this.logger.info(
+          `Found ${tools.length} tools: ${tools
+            .map((tool) => tool.name)
+            .join(", ")}`
         );
-        if (!processes.hasNextPage) {
-          break;
-        }
-        page++;
+        return {
+          tools,
+        };
+      } catch (error) {
+        this.logger.error("Error getting tools", error as Error);
+        throw new McpError(ErrorCode.InternalError, "Error getting tools");
       }
-      this.logger.info(
-        `Found ${tools.length} tools: ${tools
-          .map((tool) => tool.name)
-          .join(", ")}`
-      );
-      return {
-        tools,
-      };
     });
 
     this.setRequestHandler(CallToolRequestSchema, async (request) => {
