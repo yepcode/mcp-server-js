@@ -7,7 +7,6 @@ import {
   ListResourcesRequestSchema,
   ListResourceTemplatesRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
 import {
   YepCodeEnv,
   Log,
@@ -171,7 +170,6 @@ class YepCodeMcpServer extends Server {
         capabilities: {
           tools: {},
           resources: {},
-          resourceTemplates: {},
         },
       }
     );
@@ -345,7 +343,7 @@ class YepCodeMcpServer extends Server {
         }
         tools.push(
           ...processes.data.map((process) => {
-            const inputSchema = zodToJsonSchema(RunProcessSchema) as any;
+            const inputSchema = z.toJSONSchema(RunProcessSchema) as any;
             if (!isEmpty(process.parametersSchema)) {
               inputSchema.properties.parameters = process.parametersSchema;
             } else {
