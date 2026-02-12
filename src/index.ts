@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import Logger from "./logger.js";
+import DefaultLogger, { type Logger } from "./logger.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import YepCodeMcpServer from "./server.js";
 import { getVersion } from "./utils.js";
 
-const logger = new Logger("StdioServer", { logsToStderr: true });
+const logger: Logger = new DefaultLogger("StdioServer", { logsToStderr: true });
 
 const main = async (): Promise<void> => {
   let tools: string[] | undefined;

@@ -19,7 +19,7 @@ import dotenv from "dotenv";
 import { ToolCallRequest, ToolHandler } from "./types.js";
 import { z } from "zod";
 import { getVersion, isEmpty } from "./utils.js";
-import Logger from "./logger.js";
+import DefaultLogger, { type Logger } from "./logger.js";
 import {
   GetStorageObjectsSchema,
   UploadStorageObjectSchema,
@@ -154,12 +154,14 @@ class YepCodeMcpServer extends Server {
       tools = DEFAULT_TOOL_TAGS,
       runCodeCleanup = false,
       skipCodingRules = false,
+      externalLogger = undefined,
     }: {
       logsToStderr?: boolean;
       tools?: string[];
       runCodeCleanup?: boolean;
       skipCodingRules?: boolean;
-    } = {}
+      externalLogger?: Logger;
+    } = {},
   ) {
     super(
       {
@@ -184,12 +186,16 @@ class YepCodeMcpServer extends Server {
       this.yepCodeRun = new YepCodeRun(config);
       this.yepCodeEnv = new YepCodeEnv(config);
       this.yepCodeApi = new YepCodeApi(config);
-      this.logger = new Logger(this.yepCodeApi.getTeamId(), {
-        logsToStderr,
-      });
+      if (externalLogger) {
+        this.logger = externalLogger;
+      } else {
+        this.logger = new DefaultLogger(this.yepCodeApi.getTeamId(), {
+          logsToStderr,
+        });
+      }
       this.logger.info("YepCode initialized successfully");
     } catch (error) {
-      this.logger = new Logger("YepCodeMcpServer", {
+      this.logger = new DefaultLogger("YepCodeMcpServer", {
         logsToStderr,
       });
       this.logger.error("Exception while initializing YepCode", error as Error);
@@ -437,10 +443,12 @@ class YepCodeMcpServer extends Server {
               let executionError: string | undefined;
               let returnValue: unknown;
 
-              this.logger.info("Running code with YepCode", {
-                codeLength: code.length,
-                options,
-              });
+              this.logger.info(
+                `Running code with YepCode ${JSON.stringify({
+                  codeLength: code.length,
+                  options,
+                })}`,
+              );
 
               const execution = await this.yepCodeRun.run(code, {
                 removeOnDone: this.runCodeCleanup,
@@ -455,9 +463,11 @@ class YepCodeMcpServer extends Server {
                 },
                 onFinish: (value) => {
                   returnValue = value;
-                  this.logger.info("YepCode execution finished", {
-                    hasReturnValue: value !== undefined,
-                  });
+                  this.logger.info(
+                    `YepCode execution finished ${JSON.stringify({
+                      hasReturnValue: value !== undefined,
+                    })}`,
+                  );
                 },
               });
 
