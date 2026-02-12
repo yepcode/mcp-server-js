@@ -1,6 +1,14 @@
 import { isObject } from "./utils.js";
 
-class Logger {
+interface Logger {
+  error(message: string, error?: Error | undefined): void;
+
+  warn(message: string): void;
+
+  info(message: string): void;
+}
+
+class DefaultLogger implements Logger {
   private name: string | undefined;
   private logsToStderr: boolean;
 
@@ -53,4 +61,5 @@ class Logger {
   }
 }
 
-export default Logger;
+export default DefaultLogger;
+export type { Logger };
