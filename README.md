@@ -13,7 +13,7 @@
 
 ## What is YepCode MCP Server?
 
-An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) server that enables AI platforms to interact with [YepCode](https://yepcode.io/l/LQUKe)'s infrastructure. Run LLM generated scripts and turn your YepCode processes into powerful tools that AI assistants can use directly.
+An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) server that enables AI platforms to interact with [YepCode](https://yepcode.io/l/LQUKe)'s infrastructure. Run LLM-generated scripts and turn your YepCode processes into powerful tools that AI assistants can use directly. YepCode is the perfect environment to build a **dynamic MCP tools server**: expose each process as a tool (with OAuth, API tokens, or your credentials), define each tool's parameters with **JSON Schema** for full flexibility, and implement tools in **Python** or **Node.js**—all in one server that mixes multiple languages.
 
 ### Why YepCode MCP Server?
 
@@ -21,6 +21,16 @@ An MCP ([Model Context Protocol](https://modelcontextprotocol.io/introduction)) 
 - **Real-time Process Control**: Enable direct interaction between AI systems and your workflows
 - **Enterprise-Grade Security**: Execute code in YepCode's isolated, production-ready environments
 - **Universal Compatibility**: Integrate with any AI platform supporting the Model Context Protocol
+
+### YepCode: The Perfect Environment for a Dynamic MCP Tools Server
+
+YepCode is built to be the ideal platform for running a **dynamic MCP tools server**:
+
+- **One process, one tool**: Each YepCode process can be exposed as an MCP tool. Tag your processes (e.g. `mcp-tool`, `core`, `automation`) and they become tools that AI assistants can invoke. You can secure access with **OAuth**, **API tokens**, or your existing YepCode credentials—each tool runs in your workspace with the same security model.
+
+- **Full control over tool parameters**: Every tool can define its own **parameter schema as JSON Schema**. You get complete flexibility to describe inputs (types, descriptions, required fields, enums, defaults, etc.), so the AI receives rich metadata and can call your tools correctly.
+
+- **Polyglot tool implementations**: Implement tools in **Python** or **Node.js** (or both). The same MCP server can expose tools backed by different runtimes—think of it as one MCP server that mixes implementations across several languages.
 
 ## Integration Guide
 
