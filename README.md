@@ -32,47 +32,22 @@ YepCode is built to be the ideal platform for running a **dynamic MCP tools serv
 
 - **Polyglot tool implementations**: Implement tools in **Python** or **Node.js** (or both). The same MCP server can expose tools backed by different runtimes—think of it as one MCP server that mixes implementations across several languages.
 
-## Integration Guide
+For complete documentation, see the [YepCode MCP Server docs](https://yepcode.io/docs/mcp-server/).
 
-YepCode MCP server can be integrated with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop) using either a remote approach (we offer a hosted version of the MCP server) or a local approach (NPX or Docker installation is required).
+## Installation
 
-For both approaches, you need to get your YepCode API credentials:
+This package lets you run the YepCode MCP server **locally** or in your own infrastructure (NPX, Docker, or custom deployment). Integrate it with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop).
+
+> **Tip:** From your YepCode account you also have access to a hosted MCP server that doesn't require local installation. The connection URL is always: `https://cloud.yepcode.io/mcp`
+
+### Prerequisites
+
+Get your YepCode API credentials:
 
 1. Sign up to [YepCode Cloud](https://yepcode.io/l/LQUKe)
 2. Visit `Settings` > `API credentials` to create a new API token.
 
-### Remote Approach using SSE Server
-
-- If your MCP Client doesn't support authentication headers, just use the SSE server URL that includes the API Token. Use a configuration similar to the following:
-
-```typescript
-{
-  "mcpServers": {
-    "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse"
-    }
-  }
-}
-```
-
-- If your MCP Client supports authentication headers, you can use the HTTP server URL that includes the API Token. Use a configuration similar to the following:
-
-```typescript
-{
-  "mcpServers": {
-    "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sse",
-      "headers": {
-        "Authorization": "Bearer <sk-c2E....RD>"
-      }
-    }
-  }
-}
-```
-
-### Local Approach
-
-#### Using NPX
+### Using NPX
 
 Make sure you have Node.js installed (version 18 or higher), and use a configuration similar to the following:
 
@@ -90,7 +65,7 @@ Make sure you have Node.js installed (version 18 or higher), and use a configura
 }
 ```
 
-#### Using Docker
+### Using Docker
 
 1. Build the container image:
 
@@ -183,15 +158,6 @@ You can control which tools are enabled by setting the `YEPCODE_MCP_TOOLS` envir
 If not specified, all built-in tools are enabled by default, but no process tools will be exposed.
 
 ```typescript
-// SSE server configuration with options
-{
-  "mcpServers": {
-    "yepcode-mcp-server": {
-      "url": "https://cloud.yepcode.io/mcp/sk-c2E....RD/sse?mcpOptions=runCodeCleanup&tools=run_code,yc_api,mcp-tool,core"
-    }
-  }
-}
-
 // NPX configuration with options
 {
   "mcpServers": {
