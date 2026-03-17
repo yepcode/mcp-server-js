@@ -180,7 +180,6 @@ class YepCodeMcpServer extends Server {
     this.runCodeCleanup = runCodeCleanup;
     this.skipCodingRules = skipCodingRules;
     this.setupHandlers();
-    this.setupErrorHandling();
 
     try {
       this.yepCodeRun = new YepCodeRun(config);
@@ -204,12 +203,6 @@ class YepCodeMcpServer extends Server {
         "Exception while initializing YepCode. Have you set the YEPCODE_API_TOKEN environment variable?"
       );
     }
-  }
-
-  private setupErrorHandling(): void {
-    this.onerror = (error) => {
-      this.logger.error("[MCP Error]", error);
-    };
   }
 
   private setupHandlers(): void {
