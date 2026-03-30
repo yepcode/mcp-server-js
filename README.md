@@ -34,6 +34,10 @@ YepCode is built to be the ideal platform for running a **dynamic MCP tools serv
 
 For complete documentation, see the [YepCode MCP Server docs](https://yepcode.io/docs/mcp-server/).
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/yepcode-mcp-server-js).
+
 ## Installation
 
 This package lets you run the YepCode MCP server **locally** or in your own infrastructure (NPX, Docker, or custom deployment). Integrate it with AI platforms like [Cursor](https://cursor.sh) or [Claude Desktop](https://www.anthropic.com/news/claude-desktop).
